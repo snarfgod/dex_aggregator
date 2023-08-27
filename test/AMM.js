@@ -60,6 +60,32 @@ describe('AMM', () => {
 
         expect(await amm.token1Balance()).to.equal(amount)
         expect(await amm.token2Balance()).to.equal(amount)
+
+        expect(await amm.shares(deployer.address)).to.equal(tokens(100))
+        expect(await amm.totalShares()).to.equal(tokens(100))
+
+        // Add more liquidity
+        amount = tokens(50000)
+        transaction = await token1.connect(liquidityProvider).approve(amm.address, amount)
+        await transaction.wait()
+        transaction = await token2.connect(liquidityProvider).approve(amm.address, amount)
+        await transaction.wait()
+
+        let token2Deposit = await amm.calculateToken2Deposit(amount)
+
+        transaction = await amm.connect(liquidityProvider).addLiquidity(amount, token2Deposit)
+        await transaction.wait()
+
+        expect(await token1.balanceOf(amm.address)).to.equal(tokens(150000))
+        expect(await token2.balanceOf(amm.address)).to.equal(tokens(150000))
+
+        expect(await amm.token1Balance()).to.equal(tokens(150000))
+        expect(await amm.token2Balance()).to.equal(tokens(150000))
+
+        expect(await amm.shares(liquidityProvider.address)).to.equal(tokens(50))
+        expect(await amm.shares(deployer.address)).to.equal(tokens(100))
+        expect(await amm.totalShares()).to.equal(tokens(150))
       })
+      
     })
 })
