@@ -1,12 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import { HashRouter, Routes, Route } from 'react-router-dom'
 import { Container } from 'react-bootstrap'
-import { ethers } from 'ethers'
 
 // Components
 import Navigation from './Navigation';
-import Loading from './Loading';
 import Swap from './Swap';
 import Deposit from './Deposit';
 import Withdraw from './Withdraw';
@@ -18,8 +16,6 @@ import { loadProvider, loadNetwork, loadAccount, loadTokens, loadAMM } from '../
 
 // Config: Import your network config here
 // import config from '../config.json';
-
-import { setAccount } from '../store/reducers/provider';
 
 
 function App() {
