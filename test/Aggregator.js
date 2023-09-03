@@ -9,7 +9,7 @@ const ether = tokens
 
 describe('Aggregator', function () {
 
-    let accounts, deployer, token1, token2, amm, liquidityProvider, transaction, investor1, investor2, user1
+    let accounts, deployer, token1, token2, amm1, amm2, aggregator, liquidityProvider, transaction, investor1, investor2, user1, quote
 
     beforeEach(async () => {
         accounts = await ethers.getSigners()
@@ -51,15 +51,51 @@ describe('Aggregator', function () {
         aggregator = await Aggregator.deploy(amm1.address, amm2.address)
     })
 
-    describe('Deployment', function () {
+    describe('Deployment', async () => {
 
-        it('Should deploy Aggregator', async function () {
+        it('Should deploy Aggregator', async () => {
             console.log('Aggregator deployed to:', aggregator.address);
             expect(aggregator.address).to.not.equal(0);
         });
-        it('Should set AMMs', async function () {
+        it('Should set AMMs', async () =>  {
             expect(await aggregator.amm1()).to.equal(amm1.address);
             expect(await aggregator.amm2()).to.equal(amm2.address);
+        });
+    });
+    describe('Quotes', async () => {
+        beforeEach(async() => {
+            transaction = await token1.connect(liquidityProvider).approve(amm1.address, tokens(100000))
+            await transaction.wait()
+
+            transaction = await token2.connect(liquidityProvider).approve(amm1.address, tokens(100000))
+            await transaction.wait()
+
+            transaction = await token1.connect(liquidityProvider).approve(amm2.address, tokens(100000))
+            await transaction.wait()
+
+            transaction = await token2.connect(liquidityProvider).approve(amm2.address, tokens(100000))
+            await transaction.wait()
+
+            transaction = await amm1.connect(liquidityProvider).addLiquidity(tokens(1000), tokens(1000))
+            await transaction.wait()
+
+            transaction = await amm2.connect(liquidityProvider).addLiquidity(tokens(1000), tokens(1000))
+            await transaction.wait()
+        })
+        it('Should return correct quote for user wanting token1', async () => {
+            quote = await aggregator.connect(user1).token1Quote(tokens(10))
+            expect(quote).to.include(amm1.calculateToken1Swap(tokens(10)))
+        });
+        it('Should return correct quote for user wanting token2', async () => {
+            quote = await aggregator.connect(user1).token2Quote(tokens(10))
+            expect(quote).to.include(amm2.calculateToken2Swap(tokens(10)))
+        });
+        it('Should return lowest quote for user wanting token1', async () => {
+            transaction = await amm1.connect(liquidityProvider).swapToken1(tokens(10))
+            await transaction.wait()
+
+            quote = await aggregator.connect(user1).token1Quote(tokens(10))
+            console.log(quote)
         });
     });
 });
