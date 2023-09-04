@@ -101,5 +101,14 @@ describe('Aggregator', function () {
             expect(bestAMM).to.equal(amm1.address);
             expect(bestAMMPrice).to.equal(tokens('9.70685303824500097'))
         });
+        it('Should return lowest quote for user wanting token2', async () => {
+            transaction = await amm1.connect(liquidityProvider).swapToken2(tokens(10))
+            await transaction.wait()
+
+            let [bestAMM, bestAMMPrice] = await aggregator.token2Quote(tokens(10))
+
+            expect(bestAMM).to.equal(amm1.address);
+            expect(bestAMMPrice).to.equal(tokens('9.70685303824500097'))
+        });
     });
 });
