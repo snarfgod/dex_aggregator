@@ -133,7 +133,7 @@ describe('Aggregator', function () {
             expect(await token1.balanceOf(liquidityProvider.address)).to.equal(tokens(97980))
         });
         it('Should swap token2 for token1', async () => {
-            expect(await token1.balanceOf(liquidityProvider.address)).to.equal(tokens(98000))
+            expect(await token2.balanceOf(liquidityProvider.address)).to.equal(tokens(98000))
 
             let [bestAMM, ] = await aggregator.token2Quote(tokens(10))
             if(bestAMM == amm1.address) {
@@ -143,7 +143,7 @@ describe('Aggregator', function () {
                 transaction = await amm2.connect(liquidityProvider).swapToken2(tokens(20))
                 await transaction.wait()
             }
-            expect(await token1.balanceOf(liquidityProvider.address)).to.equal(tokens(98020))
+            expect(await token2.balanceOf(liquidityProvider.address)).to.equal(tokens(97980))
         });
     });
 });
