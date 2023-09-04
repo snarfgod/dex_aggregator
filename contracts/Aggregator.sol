@@ -34,4 +34,9 @@ contract Aggregator {
             return (amm2, price2);
         }
     }
+
+    function token1Swap(uint256 _token1Amount) public returns (AMM amm, uint256 token2Amount) {
+        (amm, ) = token1Quote(_token1Amount);
+        token2Amount = amm.swapToken1(_token1Amount);
+    }
 }

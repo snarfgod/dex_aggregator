@@ -49,6 +49,24 @@ describe('Aggregator', function () {
 
         const Aggregator = await ethers.getContractFactory('Aggregator')
         aggregator = await Aggregator.deploy(amm1.address, amm2.address)
+
+        transaction = await token1.connect(liquidityProvider).approve(amm1.address, tokens(100000))
+        await transaction.wait()
+
+        transaction = await token2.connect(liquidityProvider).approve(amm1.address, tokens(100000))
+        await transaction.wait()
+
+        transaction = await token1.connect(liquidityProvider).approve(amm2.address, tokens(100000))
+        await transaction.wait()
+
+        transaction = await token2.connect(liquidityProvider).approve(amm2.address, tokens(100000))
+        await transaction.wait()
+
+        transaction = await amm1.connect(liquidityProvider).addLiquidity(tokens(1000), tokens(1000))
+        await transaction.wait()
+
+        transaction = await amm2.connect(liquidityProvider).addLiquidity(tokens(1000), tokens(1000))
+        await transaction.wait()
     })
 
     describe('Deployment', async () => {
@@ -63,25 +81,7 @@ describe('Aggregator', function () {
         });
     });
     describe('Quotes', async () => {
-        beforeEach(async() => {
-            transaction = await token1.connect(liquidityProvider).approve(amm1.address, tokens(100000))
-            await transaction.wait()
-
-            transaction = await token2.connect(liquidityProvider).approve(amm1.address, tokens(100000))
-            await transaction.wait()
-
-            transaction = await token1.connect(liquidityProvider).approve(amm2.address, tokens(100000))
-            await transaction.wait()
-
-            transaction = await token2.connect(liquidityProvider).approve(amm2.address, tokens(100000))
-            await transaction.wait()
-
-            transaction = await amm1.connect(liquidityProvider).addLiquidity(tokens(1000), tokens(1000))
-            await transaction.wait()
-
-            transaction = await amm2.connect(liquidityProvider).addLiquidity(tokens(1000), tokens(1000))
-            await transaction.wait()
-        })
+        
         it('Should return correct quote for user wanting token1', async () => {
             let [bestAMM, bestAMMPrice] = await aggregator.token1Quote(tokens(10))
             expect(bestAMM).to.equal(amm1.address);
@@ -111,4 +111,28 @@ describe('Aggregator', function () {
             expect(bestAMMPrice).to.equal(tokens('9.70685303824500097'))
         });
     });
+    describe('Swaps', async () => {
+        beforeEach(async() => {
+            transaction = await token1.connect(liquidityProvider).approve(aggregator.address, tokens(100000))
+            await transaction.wait()
+
+            transaction = await token1.connect(liquidityProvider).approve(aggregator.address, tokens(100000))
+            await transaction.wait()
+        })
+        it('Should swap token1 for token2', async () => {
+            expect(await token1.balanceOf(liquidityProvider.address)).to.equal(tokens(98000))
+            
+            let [bestAMM, ] = await aggregator.token1Quote(tokens(10))
+            if(bestAMM == amm1.address) {
+                transaction = await amm1.connect(liquidityProvider).swapToken1(tokens(20))
+                await transaction.wait()
+            } else {
+                transaction = await amm2.connect(liquidityProvider).swapToken1(tokens(20))
+                await transaction.wait()
+            }
+            expect(await token1.balanceOf(liquidityProvider.address)).to.equal(tokens(97980))
+        });
+    });
 });
+
+
