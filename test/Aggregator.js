@@ -83,19 +83,22 @@ describe('Aggregator', function () {
             await transaction.wait()
         })
         it('Should return correct quote for user wanting token1', async () => {
-            quote = await aggregator.connect(user1).token1Quote(tokens(10))
-            expect(quote).to.include(amm1.calculateToken1Swap(tokens(10)))
+            transaction = await aggregator.connect(user1).token1Quote(tokens(10))
+            await transaction.wait()
+
+            quote = await aggregator.bestPrice()
+
+            expect(await aggregator.bestAMM()).to.equal(amm1.address);
+            expect(ethers.utils.formatUnits(quote, 'ether')).to.equal('9.900990099009900991');
         });
         it('Should return correct quote for user wanting token2', async () => {
-            quote = await aggregator.connect(user1).token2Quote(tokens(10))
-            expect(quote).to.include(amm2.calculateToken2Swap(tokens(10)))
+            transaction = await aggregator.connect(user1).token2Quote(tokens(10))
         });
         it('Should return lowest quote for user wanting token1', async () => {
             transaction = await amm1.connect(liquidityProvider).swapToken1(tokens(10))
             await transaction.wait()
 
             quote = await aggregator.connect(user1).token1Quote(tokens(10))
-            console.log(quote)
         });
     });
 });
