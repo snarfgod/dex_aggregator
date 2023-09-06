@@ -1,151 +1,70 @@
-const { expect } = require('chai');
-const { ethers } = require('hardhat');
 
-const tokens = (n) => {
-  return ethers.utils.parseUnits(n.toString(), 'ether')
-}
+const { ethers } = require("hardhat");
+const { expect } = require("chai");
+let aggregator, owner;
 
-const ether = tokens
+describe("Aggregator Contract", function () {
+  const UNISWAP = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";  // Uniswap Router
+  const SUSHISWAP = "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F";  // SushiSwap Router
+  const SHIBASWAP = "0x03f7724180AA6b939894B5Ca4314783B0b36b329";  // ShibaSwap Router
+  const WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
+  //const USDC = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
+  const DAI = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
+  const WBTC = "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599";
 
-describe('Aggregator', function () {
+  beforeEach(async function () {
+    const Aggregator = await ethers.getContractFactory("Aggregator");
+    accounts = await ethers.getSigners();
+    owner = accounts[0];
+    
+    // Deploy the aggregator with AMMs and intermediate tokens
+    aggregator = await Aggregator.deploy([UNISWAP, SUSHISWAP, SHIBASWAP], [WETH, DAI, WBTC]);
+    await aggregator.deployed();
+  });
 
-    let accounts, deployer, token1, token2, amm1, amm2, aggregator, liquidityProvider, transaction, investor1, investor2, user1, quote
+  it("Should deploy the Aggregator", async function () {
+    expect(aggregator.address).to.be.properAddress;
+  });
 
-    beforeEach(async () => {
-        accounts = await ethers.getSigners()
-        deployer = accounts[0]
-        liquidityProvider = accounts[1]
-        investor1 = accounts[2]
-        investor2 = accounts[3]
-        user1 = accounts[4]
+  it("Should return the sell rate for 1 WETH to DAI from Uniswap", async function () {
+    const amount = ethers.utils.parseUnits("1", 18);  // Assuming 18 decimals for the token
+    const rate = await getDirectRateFromSingleAMM(UNISWAP, WETH, DAI, amount, false);
+    console.log("Sell rate for 1 WETH to DAI on Uniswap is:", ethers.utils.formatUnits(rate, 18));
+    expect(rate).to.be.gt(0);
+  });
 
-        //Deploy and transfer tokens to liquidity provider and investors
+  it("Should return the sell rate for 1 WETH to DAI from SushiSwap", async function () {
+    const amount = ethers.utils.parseUnits("1", 18);  // Assuming 18 decimals for the token
+    const rate = await getDirectRateFromSingleAMM(SUSHISWAP, WETH, DAI, amount, false);
+    console.log("Sell rate for 1 WETH to DAI on SushiSwap is:", ethers.utils.formatUnits(rate, 18));
+    expect(rate).to.be.gt(0);
+  });
 
-        const Token = await ethers.getContractFactory('Token')
-        token1 = await Token.deploy('Snarfcoin', 'SNRF', '1000000')
-        token2 = await Token.deploy('USDC', 'USDC', '1000000')
+  it("Should return the sell rate for 1 WETH to DAI from ShibaSwap", async function () {
+    const amount = ethers.utils.parseUnits("1", 18);  // Assuming 18 decimals for the token
+    const rate = await getDirectRateFromSingleAMM(SHIBASWAP, WETH, DAI, amount, false);
+    console.log("Sell rate for 1 WETH to DAI on ShibaSwap is:", ethers.utils.formatUnits(rate, 18));
+    expect(rate).to.be.gt(0);
+  });
 
-        transaction = await token1.connect(deployer).transfer(liquidityProvider.address, tokens(100000))
-        await transaction.wait()
-
-        transaction = await token2.connect(deployer).transfer(liquidityProvider.address, tokens(100000))
-        await transaction.wait()
-
-        transaction = await token1.connect(deployer).transfer(investor1.address, tokens(100000))
-        await transaction.wait()
-
-        transaction = await token2.connect(deployer).transfer(investor2.address, tokens(100000))
-        await transaction.wait()
-
-        const AMM1 = await ethers.getContractFactory('AMM')
-        amm1 = await AMM1.deploy(token1.address, token2.address)
-
-        //Deploy and transfer tokens to second AMM
-
-        const AMM2 = await ethers.getContractFactory('AMM')
-        amm2 = await AMM2.deploy(token1.address, token2.address)
-
-        //Deploy Aggregator
-
-        const Aggregator = await ethers.getContractFactory('Aggregator')
-        aggregator = await Aggregator.deploy(amm1.address, amm2.address)
-
-        transaction = await token1.connect(liquidityProvider).approve(amm1.address, tokens(100000))
-        await transaction.wait()
-
-        transaction = await token2.connect(liquidityProvider).approve(amm1.address, tokens(100000))
-        await transaction.wait()
-
-        transaction = await token1.connect(liquidityProvider).approve(amm2.address, tokens(100000))
-        await transaction.wait()
-
-        transaction = await token2.connect(liquidityProvider).approve(amm2.address, tokens(100000))
-        await transaction.wait()
-
-        transaction = await amm1.connect(liquidityProvider).addLiquidity(tokens(1000), tokens(1000))
-        await transaction.wait()
-
-        transaction = await amm2.connect(liquidityProvider).addLiquidity(tokens(1000), tokens(1000))
-        await transaction.wait()
-    })
-
-    describe('Deployment', async () => {
-
-        it('Should deploy Aggregator', async () => {
-            console.log('Aggregator deployed to:', aggregator.address);
-            expect(aggregator.address).to.not.equal(0);
-        });
-        it('Should set AMMs', async () =>  {
-            expect(await aggregator.amm1()).to.equal(amm1.address);
-            expect(await aggregator.amm2()).to.equal(amm2.address);
-        });
-    });
-    describe('Quotes', async () => {
-        
-        it('Should return correct quote for user wanting token1', async () => {
-            let [bestAMM, bestAMMPrice] = await aggregator.token1Quote(tokens(10))
-            expect(bestAMM).to.equal(amm1.address);
-            expect(ethers.utils.formatUnits(bestAMMPrice, 'ether')).to.equal('9.900990099009900991')
-        });
-        it('Should return correct quote for user wanting token2', async () => {
-            let [bestAMM, bestAMMPrice] = await aggregator.token2Quote(tokens(10))
-            expect(bestAMM).to.equal(amm1.address);
-            expect(ethers.utils.formatUnits(bestAMMPrice, 'ether')).to.equal('9.900990099009900991')
-        });
-        it('Should return lowest quote for user wanting token1', async () => {
-            transaction = await amm1.connect(liquidityProvider).swapToken1(tokens(10))
-            await transaction.wait()
-
-            let [bestAMM, bestAMMPrice] = await aggregator.token1Quote(tokens(10))
-
-            expect(bestAMM).to.equal(amm1.address);
-            expect(bestAMMPrice).to.equal(tokens('9.70685303824500097'))
-        });
-        it('Should return lowest quote for user wanting token2', async () => {
-            transaction = await amm1.connect(liquidityProvider).swapToken2(tokens(10))
-            await transaction.wait()
-
-            let [bestAMM, bestAMMPrice] = await aggregator.token2Quote(tokens(10))
-
-            expect(bestAMM).to.equal(amm1.address);
-            expect(bestAMMPrice).to.equal(tokens('9.70685303824500097'))
-        });
-    });
-    describe('Swaps', async () => {
-        beforeEach(async() => {
-            transaction = await token1.connect(liquidityProvider).approve(aggregator.address, tokens(100000))
-            await transaction.wait()
-
-            transaction = await token1.connect(liquidityProvider).approve(aggregator.address, tokens(100000))
-            await transaction.wait()
-        })
-        it('Should swap token1 for token2', async () => {
-            expect(await token1.balanceOf(liquidityProvider.address)).to.equal(tokens(98000))
-
-            let [bestAMM, ] = await aggregator.token1Quote(tokens(10))
-            if(bestAMM == amm1.address) {
-                transaction = await amm1.connect(liquidityProvider).swapToken1(tokens(20))
-                await transaction.wait()
-            } else {
-                transaction = await amm2.connect(liquidityProvider).swapToken1(tokens(20))
-                await transaction.wait()
-            }
-            expect(await token1.balanceOf(liquidityProvider.address)).to.equal(tokens(97980))
-        });
-        it('Should swap token2 for token1', async () => {
-            expect(await token2.balanceOf(liquidityProvider.address)).to.equal(tokens(98000))
-
-            let [bestAMM, ] = await aggregator.token2Quote(tokens(20))
-            if(bestAMM == amm1.address) {
-                transaction = await amm1.connect(liquidityProvider).swapToken2(tokens(20))
-                await transaction.wait()
-            } else {
-                transaction = await amm2.connect(liquidityProvider).swapToken2(tokens(20))
-                await transaction.wait()
-            }
-            expect(await token2.balanceOf(liquidityProvider.address)).to.equal(tokens(97980))
-        });
-    });
+  it("Should return the best sell rate for 1 WETH to DAI using aggregator", async function () {
+    const amount = ethers.utils.parseUnits("1", 18);  // Assuming 18 decimals for the token
+    const rate = await aggregator.calculateBestRate(WETH, DAI, amount, false);
+    console.log("Best sell rate for 1 WETH to DAI using aggregator is:", ethers.utils.formatUnits(rate, 18));
+    expect(rate).to.be.gt(0);
+  });
+  
+  it("Should return the best buy rate for 1 WETH to DAI using aggregator", async function () {
+    const amount = ethers.utils.parseUnits("1", 18);  // Assuming 18 decimals for the token
+    const rate = await aggregator.calculateBestRate(WETH, DAI, amount, true);
+    console.log("Best buy rate for 1 WETH to DAI using aggregator is:", ethers.utils.formatUnits(rate, 18));
+    expect(rate).to.be.gt(0);
+  });
+ 
+  async function getDirectRateFromSingleAMM(ammAddress, token1, token2, amount, isBuying) {
+    const amm = new ethers.Contract(ammAddress, ["function getAmountsOut(uint256 amountIn, address[] calldata path) external view returns (uint[] memory amounts)"], owner);
+    const path = [token1, token2];
+    const rates = await amm.getAmountsOut(amount, path);
+    return rates[1];
+  }
 });
-
-

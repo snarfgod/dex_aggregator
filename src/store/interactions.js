@@ -27,8 +27,14 @@ import {
   swapFail
 } from './reducers/amm'
 
+import {
+  setContract as setAggregatorContract,
+  setBestExchange
+} from './reducers/aggregator'
+
 import TOKEN_ABI from '../abis/Token.json';
 import AMM_ABI from '../abis/AMM.json';
+import AGGREGATOR_ABI from '../abis/Aggregator.json';
 import config from '../config.json';
 
 export const loadProvider = (dispatch) => {
@@ -70,8 +76,23 @@ export const loadAMM = async (provider, chainId, dispatch) => {
   return amm
 }
 
+export const loadAMM2 = async (provider, chainId, dispatch) => {
+  const amm2 = new ethers.Contract(config[chainId].amm2.address, AMM_ABI, provider)
 
-// Load balances and shares
+  dispatch(setContract(amm2))
+
+  return amm2
+}
+
+export const loadAggregator = async (provider, chainId, dispatch) => {
+  const aggregator = new ethers.Contract(config[chainId].aggregator.address, AGGREGATOR_ABI, provider)
+
+  dispatch(setAggregatorContract(aggregator))
+
+  return aggregator
+}
+
+  // Load balances and shares
 export const loadBalances = async (amm, tokens, account, dispatch) => {
   const balance1 = await tokens[0].balanceOf(account)
   const balance2 = await tokens[1].balanceOf(account)
@@ -167,4 +188,12 @@ export const loadAllSwaps = async (provider, amm, dispatch) => {
   })
 
   dispatch(swapsLoaded(swaps))
+}
+
+// Load best exchange
+
+export const loadBestExchangeToken1 = async (aggregator, amount, dispatch) => {
+  let [bestExchange, bestPrice] = await aggregator.token1Quote(amount)
+
+  dispatch(setBestExchange(bestExchange))
 }

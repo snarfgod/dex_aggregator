@@ -1,30 +1,28 @@
-// We require the Hardhat Runtime Environment explicitly here. This is optional
-// but useful for running the script in a standalone fashion through `node <script>`.
-//
-// You can also run a script with `npx hardhat run <script>`. If you do that, Hardhat
-// will compile your contracts, add the Hardhat Runtime Environment's members to the
-// global scope, and execute the script.
-const hre = require("hardhat");
+
+const { ethers } = require("hardhat");
 
 async function main() {
-  // Deploy Token1
-  const Token = await hre.ethers.getContractFactory('Token')
-  let snarfcoin = await Token.deploy('Snarfcoin', 'SNRF', '1000000')
-  await snarfcoin.deployed()
-  console.log(`Snarfcoin deployed to: ${snarfcoin.address}\n`)
-  usd = await Token.deploy('USD', 'USD', '1000000')
-  await usd.deployed()
-  console.log(`USD deployed to: ${usd.address}\n`)
+  const [deployer] = await ethers.getSigners();
 
-  const AMM = await hre.ethers.getContractFactory('AMM')
-  let amm = await AMM.deploy(snarfcoin.address, usd.address)
-  await amm.deployed()
-  console.log(`AMM deployed to: ${amm.address}\n`)
+  console.log("Deploying Aggregator with account:", deployer.address);
+
+  const Aggregator = await ethers.getContractFactory("Aggregator");
+  
+  // Addresses for Uniswap, Sushiswap, and Pancakeswap
+  const AMMs = ["0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f", "0xC0AEe478e3658e2610c5F7A4A2E1777cE9e4f2Ac", "0x1097053Fd2ea711dad45caCcc45EfF7548fCB362"];
+  
+  // Addresses for WETH, DAI, and WBTC
+  const tokens = ["0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", "0x6B175474E89094C44Da98b954EedeAC495271d0F", "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"];
+  
+  const aggregator = await Aggregator.deploy(AMMs, tokens);
+  await aggregator.deployed();
+
+  console.log("Aggregator deployed to:", aggregator.address);
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+main()
+  .then(() => process.exit(0))
+  .catch(error => {
+    console.error(error);
+    process.exit(1);
+  });

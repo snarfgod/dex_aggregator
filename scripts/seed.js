@@ -28,10 +28,14 @@ async function main() {
     const snarfcoin = await ethers.getContractAt('Token', config[chainId].snarfcoin.address)
     const usd = await ethers.getContractAt('Token', config[chainId].usd.address)
     const amm = await ethers.getContractAt('AMM', config[chainId].amm.address)
+    const amm2 = await ethers.getContractAt('AMM', config[chainId].amm2.address)
+    const aggregator = await ethers.getContractAt('Aggregator', config[chainId].aggregator.address)
 
     console.log(`Snarfcoin fetched at: ${snarfcoin.address}\n`)
     console.log(`USD fetched at: ${usd.address}\n`)
     console.log(`AMM fetched at: ${amm.address}\n`)
+    console.log(`AMM2 fetched at: ${amm2.address}\n`)
+    console.log(`Aggregator fetched at: ${aggregator.address}\n`)
 
     //Distribute tokens to investors
     console.log(`Distributing tokens to investors...\n`)
@@ -75,6 +79,39 @@ async function main() {
     await transaction.wait()
 
     transaction = await usd.connect(investor4).approve(amm.address, tokens(5))
+    await transaction.wait()
+    console.log(`Tokens swapped!\n`)
+
+    //Doing everything again for the second exchange
+
+    //Add liquidity
+    console.log(`Approving and adding liquidity for the second exchange...\n`)
+    transaction = await snarfcoin.connect(deployer).approve(amm2.address, amount)
+    await transaction.wait()
+    transaction = await usd.connect(deployer).approve(amm2.address, amount)
+    await transaction.wait()
+    transaction = await amm2.connect(deployer).addLiquidity(amount, amount)
+    await transaction.wait()
+    console.log(`Liquidity added!\n`)
+
+    //Swap tokens
+    console.log(`Swapping tokens...\n`)
+    transaction = await snarfcoin.connect(investor1).approve(amm2.address, tokens(10))
+    await transaction.wait()
+    transaction = await amm2.connect(investor1).swapToken1(tokens(1))
+    await transaction.wait()
+
+    transaction = await usd.connect(investor2).approve(amm2.address, tokens(10))
+    await transaction.wait()
+    transaction = await amm2.connect(investor2).swapToken2(tokens(1))
+    await transaction.wait()
+
+    transaction = await snarfcoin.connect(investor3).approve(amm2.address, tokens(10))
+    await transaction.wait()
+    transaction = await amm2.connect(investor3).swapToken1(tokens(10))
+    await transaction.wait()
+
+    transaction = await usd.connect(investor4).approve(amm2.address, tokens(5))
     await transaction.wait()
     console.log(`Tokens swapped!\n`)
 }

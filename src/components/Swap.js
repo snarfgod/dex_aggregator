@@ -39,6 +39,8 @@ const Swap = () => {
   const isSuccess = useSelector(state => state.amm.swapping.isSuccess)
   const transactionHash = useSelector(state => state.amm.swapping.transactionHash)
 
+  const bestExchange = useSelector(state => state.aggregator.bestExchange)
+
   const dispatch = useDispatch()
 
   const inputHandler = async (e) => {
@@ -196,6 +198,7 @@ const Swap = () => {
               <Form.Text muted>
                 Exchange Rate: {price}
               </Form.Text>
+              <Form.Text> Best Exchange for token1swap : {bestExchange}</Form.Text>
             </Row>
 
           </Form>
