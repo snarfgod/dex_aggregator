@@ -11,7 +11,7 @@ import Withdraw from './Withdraw';
 import Charts from './Charts';
 import Tabs from './Tabs';
 
-import { loadProvider, loadNetwork, loadAccount, loadTokens, loadAMM } from '../store/interactions';
+import { loadProvider, loadNetwork, loadAccount } from '../store/interactions';
 
 
 // Config: Import your network config here
@@ -33,10 +33,6 @@ function App() {
     window.ethereum.on('chainChanged', async () => {
       window.location.reload()
     })
-
-    await loadTokens(provider, chainId, dispatch)
-    await loadAMM(provider, chainId, dispatch)
-
   }
 
   useEffect(() => {

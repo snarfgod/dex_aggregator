@@ -6,21 +6,18 @@ import Blockies from 'react-blockies';
 import logo from '../logo.png';
 import { Button } from 'react-bootstrap';
 
-import { loadAccount, loadBalances } from '../store/interactions';
+import { loadAccount } from '../store/interactions';
 import config from '../config.json';
 
 const Navigation = () => {
   const chainId = useSelector(state => state.provider.chainId)
   const account = useSelector(state => state.provider.account);
-  const tokens = useSelector(state => state.tokens.contracts);
-  const amm = useSelector(state => state.amm.contract);
 
   const dispatch = useDispatch();
 
   const connectHandler = async () => {
     try {
       const account = await loadAccount(dispatch)
-      await loadBalances(amm, tokens, account, dispatch)
     } catch (error) {
       console.log(error)
     }
@@ -42,7 +39,7 @@ const Navigation = () => {
         height="40"
         className="d-inline-block align-top mx-3"
       />
-      <Navbar.Brand href="#">SnarfAMM</Navbar.Brand>
+      <Navbar.Brand href="#">SnarfDEX Aggregator</Navbar.Brand>
       <Navbar.Toggle aria-controls="nav" />
       <Navbar.Collapse id='nav' className="justify-content-end">
         <div className='d-flex justify-content-end mt-3'>
