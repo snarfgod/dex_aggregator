@@ -22,10 +22,11 @@ contract Aggregator {
         intermediateTokens = _intermediateTokens;
     }
 
-    function calculateBestRate(address token1, address token2, uint256 amount, bool isBuying) public view returns (uint256 bestRate) {
-        (uint256 directRate, ) = calculateBestDirectRate(token1, token2, amount, isBuying);
-        require(directRate > 0, "Error in direct rate");
-        return directRate;
+    function calculateBestRate(address token1, address token2, uint256 amount, bool isBuying) public view returns (uint256 bestRate, uint256 bestAmmIndex) {
+        (bestRate, bestAmmIndex) = calculateBestDirectRate(token1, token2, amount, isBuying);
+        require(bestRate > 0, "Error in direct rate");
+        require(bestAmmIndex < amms.length, "Error in direct amm index");
+        return (bestRate, bestAmmIndex);
     }
 
     function calculateBestDirectRate(address token1, address token2, uint256 amount, bool isBuying) internal view returns (uint256 bestRate, uint bestAmmIndex) {

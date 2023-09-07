@@ -18,11 +18,12 @@ const Swap = () => {
   let [outputToken, setOutputToken] = useState(null)
   let [inputAmount, setInputAmount] = useState(0)
   let [outputAmount, setOutputAmount] = useState(0)
+  let [isBuying, setIsBuying] = useState(false)
+
+  const dispatch = useDispatch()
 
   //import aggregator contract
   const aggregator = useSelector(state => state.aggregator.contract)
-  const bestExchangeIndex = useSelector(state => state.aggregator.bestExchange)
-  const bestPrice = useSelector(state => state.aggregator.bestPrice)
 
   const WETHADDRESS = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
   const DAIADDRESS = '0x6B175474E89094C44Da98b954EedeAC495271d0F'
@@ -55,19 +56,14 @@ const Swap = () => {
       outputToken = WBTCADDRESS
     }
 
-    setInputAmount(e.target.value)
-
     const _inputTokenAmount = ethers.utils.parseUnits(e.target.value, 'ether')
-    const [bestPrice, bestExchangeIndex] = await aggregator.calculateBestRate(inputToken, outputToken, inputAmount, true)
-    setOutputAmount(bestPrice*inputAmount)
+    setInputAmount(_inputTokenAmount)
+    console.log(inputToken, outputToken, _inputTokenAmount)
+    const [bestPrice, bestAMMIndex] = await aggregator.calculateBestRate(inputToken, outputToken, _inputTokenAmount, isBuying)
+    console.log(bestPrice, bestAMMIndex)  
   }
 
   const outputHandler = async (e) => {
-    if (!inputToken || !outputToken) {
-      window.alert('Please select token')
-      return
-    }
-
     if (inputToken === outputToken) {
       window.alert('Invalid token pair')
       return
@@ -90,8 +86,12 @@ const Swap = () => {
     }
 
     setInputAmount(e.target.value)
-    const [bestPrice, bestExchangeIndex] = await aggregator.calculateBestRate(inputToken, outputToken, inputAmount, true)//must set isbuying correctly 
-    setOutputAmount(bestPrice*inputAmount)
+    const _inputTokenAmount = ethers.utils.parseUnits(e.target.value, 'ether')
+
+    console.log(inputToken, outputToken, _inputTokenAmount)
+
+    const [bestPrice, bestAMMIndex] = await aggregator.calculateBestRate(inputToken, outputToken, _inputTokenAmount, isBuying)
+    console.log(bestPrice, bestAMMIndex)      
   }
 
   return (

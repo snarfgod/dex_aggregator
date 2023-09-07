@@ -63,6 +63,11 @@
         "internalType": "uint256",
         "name": "bestRate",
         "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "bestAmmIndex",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
