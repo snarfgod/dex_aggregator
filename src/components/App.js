@@ -38,9 +38,6 @@ function App() {
 
     // Load contracts
     const aggregator = await loadAggregatorContract(provider, '31337', dispatch)
-
-    // Load best exchange
-    let bestPrice, bestExchange = await loadBestExchange(aggregator, 10, dispatch)
   }
 
   useEffect(() => {

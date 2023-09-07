@@ -48,8 +48,9 @@ export const loadAggregatorContract = async (provider, chainId, dispatch) => {
 
 // Load best exchange and price from aggregator contract
 
-export const loadBestExchange = async (aggregator, amount, dispatch) => {
-  const [bestPrice, bestAMMIndex] = await aggregator.calculateBestRate(amount)
+export const loadBestExchange = async (aggregator, tokenIn, tokenOut, amount, isBuying, dispatch) => {
+  const [bestPrice, bestAMMIndex] = await aggregator.calculateBestRate(tokenIn, tokenOut, amount, isBuying)
+  console.log(bestPrice, bestAMMIndex)
   dispatch(setBestPrice(bestPrice))
   const bestExchange = await aggregator.amms[bestAMMIndex]
   dispatch(setBestExchange(bestExchange))
