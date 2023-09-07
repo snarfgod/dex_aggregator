@@ -1,140 +1,90 @@
 [
-    {
-      "inputs": [
-        {
-          "internalType": "contract AMM",
-          "name": "_amm1",
-          "type": "address"
-        },
-        {
-          "internalType": "contract AMM",
-          "name": "_amm2",
-          "type": "address"
-        }
-      ],
-      "stateMutability": "nonpayable",
-      "type": "constructor"
-    },
-    {
-      "inputs": [],
-      "name": "amm1",
-      "outputs": [
-        {
-          "internalType": "contract AMM",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "amm2",
-      "outputs": [
-        {
-          "internalType": "contract AMM",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "_token1Amount",
-          "type": "uint256"
-        }
-      ],
-      "name": "token1Quote",
-      "outputs": [
-        {
-          "internalType": "contract AMM",
-          "name": "",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "_token1Amount",
-          "type": "uint256"
-        }
-      ],
-      "name": "token1Swap",
-      "outputs": [
-        {
-          "internalType": "contract AMM",
-          "name": "amm",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "token2Amount",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "_token2Amount",
-          "type": "uint256"
-        }
-      ],
-      "name": "token2Quote",
-      "outputs": [
-        {
-          "internalType": "contract AMM",
-          "name": "",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "_token2Amount",
-          "type": "uint256"
-        }
-      ],
-      "name": "token2Swap",
-      "outputs": [
-        {
-          "internalType": "contract AMM",
-          "name": "amm",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "token1Amount",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    }
-  ]
+  {
+    "inputs": [
+      {
+        "internalType": "contract IUniswapLike[]",
+        "name": "_amms",
+        "type": "address[]"
+      },
+      {
+        "internalType": "address[]",
+        "name": "_intermediateTokens",
+        "type": "address[]"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "amms",
+    "outputs": [
+      {
+        "internalType": "contract IUniswapLike",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "token1",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "token2",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "isBuying",
+        "type": "bool"
+      }
+    ],
+    "name": "calculateBestRate",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "bestRate",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "intermediateTokens",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]
