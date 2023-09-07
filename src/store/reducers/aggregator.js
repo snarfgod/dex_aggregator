@@ -9,13 +9,13 @@ export const aggregator = createSlice({
     },
     reducers: {
         setAggregatorContract: (state, action) => {
-            state.connection = action.payload
+            state.contract = action.payload
         },
         setBestExchange: (state, action) => {
-            state.chainId = action.payload
+            state.bestExchange = action.payload
         },
         setBestPrice: (state, action) => {
-            state.account = action.payload
+            state.bestPrice = action.payload
         }
     }
 })

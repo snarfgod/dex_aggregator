@@ -38,7 +38,7 @@ export const loadAccount = async (dispatch) => {
 }
 
 // Load contracts
-export const loadAggregator = async (provider, chainId, dispatch) => {
+export const loadAggregatorContract = async (provider, chainId, dispatch) => {
   const aggregator = new ethers.Contract(config[chainId].aggregator.address, AGGREGATOR_ABI, provider)
 
   dispatch(setAggregatorContract(aggregator))
@@ -46,12 +46,15 @@ export const loadAggregator = async (provider, chainId, dispatch) => {
   return aggregator
 }
 
-// Load best exchange
+// Load best exchange and price from aggregator contract
 
-export const loadBestExchange = async (aggregator, dispatch) => {
-  const [bestExchange, bestPrice] = await aggregator.calculateBestRate()
-  dispatch(setBestExchange(bestExchange))
+export const loadBestExchange = async (aggregator, amount, dispatch) => {
+  const [bestPrice, bestAMMIndex] = await aggregator.calculateBestRate(amount)
   dispatch(setBestPrice(bestPrice))
+  const bestExchange = await aggregator.amms[bestAMMIndex]
+  dispatch(setBestExchange(bestExchange))
 
-  return bestExchange
+  return bestPrice, bestExchange
 }
+
+

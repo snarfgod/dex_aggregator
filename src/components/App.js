@@ -11,7 +11,7 @@ import Withdraw from './Withdraw';
 import Charts from './Charts';
 import Tabs from './Tabs';
 
-import { loadProvider, loadNetwork, loadAccount } from '../store/interactions';
+import { loadProvider, loadNetwork, loadAccount, loadAggregatorContract, loadBestExchange } from '../store/interactions';
 
 
 // Config: Import your network config here
@@ -33,6 +33,14 @@ function App() {
     window.ethereum.on('chainChanged', async () => {
       window.location.reload()
     })
+
+    await loadAccount(dispatch)
+
+    // Load contracts
+    const aggregator = await loadAggregatorContract(provider, '31337', dispatch)
+
+    // Load best exchange
+    let bestPrice, bestExchange = await loadBestExchange(aggregator, 10, dispatch)
   }
 
   useEffect(() => {
