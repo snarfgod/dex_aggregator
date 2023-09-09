@@ -57,6 +57,45 @@
         "type": "bool"
       }
     ],
+    "name": "calculateBestDirectRate",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "bestRate",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "bestAmmIndex",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "token1",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "token2",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "isBuying",
+        "type": "bool"
+      }
+    ],
     "name": "calculateBestRate",
     "outputs": [
       {

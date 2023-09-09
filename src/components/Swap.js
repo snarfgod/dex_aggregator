@@ -58,9 +58,10 @@ const Swap = () => {
 
     const _inputTokenAmount = ethers.utils.parseUnits(e.target.value, 'ether')
     setInputAmount(_inputTokenAmount)
-    console.log(inputToken, outputToken, _inputTokenAmount)
-    const [bestPrice, bestAMMIndex] = await aggregator.calculateBestRate(inputToken, outputToken, _inputTokenAmount, isBuying)
-    console.log(bestPrice, bestAMMIndex)  
+    console.log(inputToken, outputToken, _inputTokenAmount.toString(), true)
+    const [bestPrice, bestAMMIndex] = await aggregator.calculateBestRate(WETHADDRESS, DAIADDRESS, _inputTokenAmount, true)
+    console.log(bestPrice, bestAMMIndex)
+    setOutputAmount(ethers.utils.formatUnits(bestPrice, 'ether')) 
   }
 
   const outputHandler = async (e) => {
@@ -85,14 +86,13 @@ const Swap = () => {
       outputToken = WBTCADDRESS
     }
 
-    setInputAmount(e.target.value)
     const _inputTokenAmount = ethers.utils.parseUnits(e.target.value, 'ether')
-
-    console.log(inputToken, outputToken, _inputTokenAmount)
-
-    const [bestPrice, bestAMMIndex] = await aggregator.calculateBestRate(inputToken, outputToken, _inputTokenAmount, isBuying)
-    console.log(bestPrice, bestAMMIndex)      
-  }
+    setInputAmount(e.target.value)
+    console.log(inputToken, outputToken, _inputTokenAmount.toString(), true)
+    const [bestPrice, bestAMMIndex] = await aggregator.calculateBestRate(WETHADDRESS, DAIADDRESS, _inputTokenAmount, true)
+    console.log(bestPrice, bestAMMIndex)
+    setOutputAmount(ethers.utils.formatUnits(bestPrice, 'ether'))
+    }
 
   return (
     <div>

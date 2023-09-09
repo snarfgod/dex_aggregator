@@ -29,9 +29,9 @@ contract Aggregator {
         return (bestRate, bestAmmIndex);
     }
 
-    function calculateBestDirectRate(address token1, address token2, uint256 amount, bool isBuying) internal view returns (uint256 bestRate, uint bestAmmIndex) {
-        bestRate = isBuying ? type(uint256).max : 0;
+    function calculateBestDirectRate(address token1, address token2, uint256 amount, bool isBuying) public view returns (uint256 bestRate, uint bestAmmIndex) {
         bool foundSuitableAmm = false;
+        bestRate = 0; //Default value
         bestAmmIndex = 0; // Default value
 
         for (uint i = 0; i < amms.length; i++) {
@@ -41,7 +41,8 @@ contract Aggregator {
 
             uint[] memory amountsOut = amms[i].getAmountsOut(amount, path);
             if (isBuying) {
-                if (amountsOut[1] < bestRate) {
+                bestRate = amountsOut[1];
+                if (amountsOut[1] <= bestRate) {
                     bestRate = amountsOut[1];
                     bestAmmIndex = i;
                     foundSuitableAmm = true;

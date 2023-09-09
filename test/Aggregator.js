@@ -49,7 +49,7 @@ describe("Aggregator Contract", function () {
 
   it("Should return the best sell rate for 1 WETH to DAI using aggregator", async function () {
     const amount = ethers.utils.parseUnits("1", 18);  // Assuming 18 decimals for the token
-    const [rate, AMMIndex] = await aggregator.calculateBestRate(WETH, DAI, amount, false);
+    const [rate, AMMIndex] = await aggregator.calculateBestDirectRate(WETH, DAI, amount, false);
     console.log("Best sell rate for 1 WETH to DAI using aggregator is:", ethers.utils.formatUnits(rate, 18));
     console.log("Best AMM index is:", AMMIndex.toString());
     expect(rate).to.be.gt(0);
@@ -57,12 +57,12 @@ describe("Aggregator Contract", function () {
   
   it("Should return the best buy rate for 1 WETH to DAI using aggregator", async function () {
     const amount = ethers.utils.parseUnits("1", 18);  // Assuming 18 decimals for the token
-    const [rate, AMMIndex] = await aggregator.calculateBestRate(WETH, DAI, amount, true);
+    const [rate, AMMIndex] = await aggregator.calculateBestDirectRate(WETH, DAI, amount, true);
     console.log("Best buy rate for 1 WETH to DAI using aggregator is:", ethers.utils.formatUnits(rate, 18));
     console.log("Best AMM index is:", AMMIndex.toString());
     expect(rate).to.be.gt(0);
   });
-  
+
  
   async function getDirectRateFromSingleAMM(ammAddress, token1, token2, amount, isBuying) {
     const amm = new ethers.Contract(ammAddress, ["function getAmountsOut(uint256 amountIn, address[] calldata path) external view returns (uint[] memory amounts)"], owner);
