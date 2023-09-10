@@ -40,19 +40,19 @@ const Swap = () => {
       return
     }
 
-    if(inputToken == 'WETH') {
+    if(inputToken === 'WETH') {
       inputToken = WETHADDRESS
-    } else if (inputToken == 'DAI') {
+    } else if (inputToken === 'DAI') {
       inputToken = DAIADDRESS
-    } else if (inputToken == 'WBTC') {
+    } else if (inputToken === 'WBTC') {
       inputToken = WBTCADDRESS
     }
     
-    if(outputToken == 'WETH') {
+    if(outputToken === 'WETH') {
       outputToken = WETHADDRESS
-    } else if (outputToken == 'DAI') {
+    } else if (outputToken === 'DAI') {
       outputToken = DAIADDRESS
-    } else if (outputToken == 'WBTC') {
+    } else if (outputToken === 'WBTC') {
       outputToken = WBTCADDRESS
     }
 
@@ -70,26 +70,26 @@ const Swap = () => {
       return
     }
 
-    if(inputToken == 'WETH') {
+    if(inputToken === 'WETH') {
       inputToken = WETHADDRESS
-    } else if (inputToken == 'DAI') {
+    } else if (inputToken === 'DAI') {
       inputToken = DAIADDRESS
-    } else if (inputToken == 'WBTC') {
+    } else if (inputToken === 'WBTC') {
       inputToken = WBTCADDRESS
     }
     
-    if(outputToken == 'WETH') {
+    if(outputToken === 'WETH') {
       outputToken = WETHADDRESS
-    } else if (outputToken == 'DAI') {
+    } else if (outputToken === 'DAI') {
       outputToken = DAIADDRESS
-    } else if (outputToken == 'WBTC') {
+    } else if (outputToken === 'WBTC') {
       outputToken = WBTCADDRESS
     }
 
     const _inputTokenAmount = ethers.utils.parseUnits(e.target.value, 'ether')
     setInputAmount(e.target.value)
     console.log(inputToken, outputToken, _inputTokenAmount.toString(), true)
-    const [bestPrice, bestAMMIndex] = await aggregator.calculateBestRate(WETHADDRESS, DAIADDRESS, _inputTokenAmount, true)
+    const [bestPrice, bestAMMIndex] = await aggregator.calculateBestRate(inputToken, outputToken, inputAmount, true)
     console.log(bestPrice, bestAMMIndex)
     setOutputAmount(ethers.utils.formatUnits(bestPrice, 'ether'))
     }

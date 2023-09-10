@@ -1,16 +1,16 @@
 
 const { ethers } = require("hardhat");
 const { expect } = require("chai");
-let aggregator, owner;
 
 describe("Aggregator Contract", function () {
   const UNISWAP = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";  // Uniswap Router
   const SUSHISWAP = "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F";  // SushiSwap Router
   const SHIBASWAP = "0x03f7724180AA6b939894B5Ca4314783B0b36b329";  // ShibaSwap Router
   const WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
-  //const USDC = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
   const DAI = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
   const WBTC = "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599";
+
+  let rate, AMM, accounts, aggregator, owner;
 
   beforeEach(async function () {
     const Aggregator = await ethers.getContractFactory("Aggregator");
@@ -18,7 +18,7 @@ describe("Aggregator Contract", function () {
     owner = accounts[0];
     
     // Deploy the aggregator with AMMs and intermediate tokens
-    aggregator = await Aggregator.deploy([UNISWAP, SUSHISWAP, SHIBASWAP], [WETH, DAI, WBTC]);
+    aggregator = await Aggregator.deploy(UNISWAP, SUSHISWAP, SHIBASWAP, WETH, DAI, WBTC);
     await aggregator.deployed();
   });
 
@@ -49,17 +49,18 @@ describe("Aggregator Contract", function () {
 
   it("Should return the best sell rate for 1 WETH to DAI using aggregator", async function () {
     const amount = ethers.utils.parseUnits("1", 18);  // Assuming 18 decimals for the token
-    const [rate, AMMIndex] = await aggregator.calculateBestDirectRate(WETH, DAI, amount, false);
+    [rate, AMM] = await aggregator.calculateBestRate(WETH, DAI, amount, false);
     console.log("Best sell rate for 1 WETH to DAI using aggregator is:", ethers.utils.formatUnits(rate, 18));
-    console.log("Best AMM index is:", AMMIndex.toString());
+    console.log("Best AMM is:", AMM.toString());
     expect(rate).to.be.gt(0);
   });
   
   it("Should return the best buy rate for 1 WETH to DAI using aggregator", async function () {
     const amount = ethers.utils.parseUnits("1", 18);  // Assuming 18 decimals for the token
-    const [rate, AMMIndex] = await aggregator.calculateBestDirectRate(WETH, DAI, amount, true);
+    console.log(aggregator.address)
+    const [rate, AMM] = await aggregator.calculateBestRate(WETH, DAI, amount, true);
     console.log("Best buy rate for 1 WETH to DAI using aggregator is:", ethers.utils.formatUnits(rate, 18));
-    console.log("Best AMM index is:", AMMIndex.toString());
+    console.log("Best AMM is:", AMM.toString());
     expect(rate).to.be.gt(0);
   });
 
