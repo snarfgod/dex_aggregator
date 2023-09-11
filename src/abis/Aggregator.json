@@ -2,28 +2,42 @@
   {
     "inputs": [
       {
-        "internalType": "contract IUniswapLike[]",
-        "name": "_amms",
-        "type": "address[]"
+        "internalType": "contract IUniswapLike",
+        "name": "_amm1",
+        "type": "address"
       },
       {
-        "internalType": "address[]",
-        "name": "_intermediateTokens",
-        "type": "address[]"
+        "internalType": "contract IUniswapLike",
+        "name": "_amm2",
+        "type": "address"
+      },
+      {
+        "internalType": "contract IUniswapLike",
+        "name": "_amm3",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_weth",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_dai",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_wbtc",
+        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
     "type": "constructor"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "amms",
+    "inputs": [],
+    "name": "amm1",
     "outputs": [
       {
         "internalType": "contract IUniswapLike",
@@ -35,39 +49,26 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "token1",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "token2",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bool",
-        "name": "isBuying",
-        "type": "bool"
-      }
-    ],
-    "name": "calculateBestDirectRate",
+    "inputs": [],
+    "name": "amm2",
     "outputs": [
       {
-        "internalType": "uint256",
-        "name": "bestRate",
-        "type": "uint256"
-      },
+        "internalType": "contract IUniswapLike",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "amm3",
+    "outputs": [
       {
-        "internalType": "uint256",
-        "name": "bestAmmIndex",
-        "type": "uint256"
+        "internalType": "contract IUniswapLike",
+        "name": "",
+        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -104,23 +105,43 @@
         "type": "uint256"
       },
       {
-        "internalType": "uint256",
-        "name": "bestAmmIndex",
-        "type": "uint256"
+        "internalType": "contract IUniswapLike",
+        "name": "bestAMM",
+        "type": "address"
       }
     ],
     "stateMutability": "view",
     "type": "function"
   },
   {
-    "inputs": [
+    "inputs": [],
+    "name": "dai",
+    "outputs": [
       {
-        "internalType": "uint256",
+        "internalType": "address",
         "name": "",
-        "type": "uint256"
+        "type": "address"
       }
     ],
-    "name": "intermediateTokens",
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "wbtc",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "weth",
     "outputs": [
       {
         "internalType": "address",
