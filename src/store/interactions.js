@@ -7,9 +7,7 @@ import {
 } from './reducers/provider'
 
 import {
-  setAggregatorContract,
-  setBestExchange,
-  setBestPrice
+  setAggregatorContract
 } from './reducers/aggregator'
 
 import AGGREGATOR_ABI from '../abis/Aggregator.json';
@@ -44,18 +42,6 @@ export const loadAggregatorContract = async (provider, chainId, dispatch) => {
   dispatch(setAggregatorContract(aggregator))
 
   return aggregator
-}
-
-// Load best exchange and price from aggregator contract
-
-export const loadBestExchange = async (aggregator, tokenIn, tokenOut, amount, isBuying, dispatch) => {
-  const [bestPrice, bestAMMIndex] = await aggregator.calculateBestRate(tokenIn, tokenOut, amount, isBuying)
-  console.log(bestPrice, bestAMMIndex)
-  dispatch(setBestPrice(bestPrice))
-  const bestExchange = await aggregator.amms[bestAMMIndex]
-  dispatch(setBestExchange(bestExchange))
-
-  return bestPrice, bestExchange
 }
 
 
