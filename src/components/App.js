@@ -37,7 +37,7 @@ function App() {
     await loadAccount(dispatch)
 
     // Load contracts
-    const aggregator = await loadAggregatorContract(provider, '31337', dispatch)
+    const aggregator = await loadAggregatorContract(provider, '1', dispatch)
   }
 
   useEffect(() => {

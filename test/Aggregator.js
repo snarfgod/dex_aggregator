@@ -20,9 +20,11 @@ describe("Aggregator Contract", function () {
     // Deploy the aggregator with AMMs and intermediate tokens
     aggregator = await Aggregator.deploy(UNISWAP, SUSHISWAP, SHIBASWAP, WETH, DAI, WBTC);
     await aggregator.deployed();
+    console.log(aggregator.address)
   });
 
   it("Should deploy the Aggregator", async function () {
+
     expect(aggregator.address).to.be.properAddress;
   });
 
@@ -49,7 +51,7 @@ describe("Aggregator Contract", function () {
 
   it("Should return the best sell rate for 1 WETH to DAI using aggregator", async function () {
     const amount = ethers.utils.parseUnits("1", 18);  // Assuming 18 decimals for the token
-    [rate, AMM] = await aggregator.calculateBestRate(WETH, DAI, amount, false);
+    const [rate, AMM] = await aggregator.calculateBestRate(WETH, DAI, amount, false);
     console.log("Best sell rate for 1 WETH to DAI using aggregator is:", ethers.utils.formatUnits(rate, 18));
     console.log("Best AMM is:", AMM.toString());
     expect(rate).to.be.gt(0);
@@ -57,7 +59,6 @@ describe("Aggregator Contract", function () {
   
   it("Should return the best buy rate for 1 WETH to DAI using aggregator", async function () {
     const amount = ethers.utils.parseUnits("1", 18);  // Assuming 18 decimals for the token
-    console.log(aggregator.address)
     const [rate, AMM] = await aggregator.calculateBestRate(WETH, DAI, amount, true);
     console.log("Best buy rate for 1 WETH to DAI using aggregator is:", ethers.utils.formatUnits(rate, 18));
     console.log("Best AMM is:", AMM.toString());

@@ -18,8 +18,9 @@ const Swap = () => {
         const isBuying = false;
   
         try {
-          const result = await aggregator.callStatic.calculateBestRate(tokenA, tokenB, amount, isBuying);
-          const [bestRate, bestAMM] = result;
+          console.log('Calculating best rate...')
+          console.log(aggregator)
+          const [bestRate, bestAMM]  = await aggregator.callStatic.calculateBestRate(tokenA, tokenB, '1', isBuying);
           setBestRate(ethers.utils.formatUnits(bestRate.toString(), 'ether'));
           setLoading(false);
         } catch (error) {
