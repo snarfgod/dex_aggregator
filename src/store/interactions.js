@@ -7,7 +7,8 @@ import {
 } from './reducers/provider'
 
 import {
-  setAggregatorContract
+  setAggregatorContract,
+  setBestRate
 } from './reducers/aggregator'
 
 import AGGREGATOR_ABI from '../abis/Aggregator.json';
@@ -42,6 +43,12 @@ export const loadAggregatorContract = async (provider, chainId, dispatch) => {
   dispatch(setAggregatorContract(aggregator))
 
   return aggregator
+}
+
+export const loadBestRate = async (aggregator, dispatch) => {
+  const [bestRate, bestAMM] = await aggregator.calculateBestRate('0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', '0x6B175474E89094C44Da98b954EedeAC495271d0F', ethers.utils.parseUnits("1", 18), false);
+  dispatch(setBestRate(bestRate))
+  return bestRate;
 }
 
 

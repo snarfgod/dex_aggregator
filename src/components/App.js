@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useDispatch } from 'react-redux'
+import { ethers } from 'ethers'
 import { HashRouter, Routes, Route } from 'react-router-dom'
 import { Container } from 'react-bootstrap'
 
@@ -11,7 +12,7 @@ import Withdraw from './Withdraw';
 import Charts from './Charts';
 import Tabs from './Tabs';
 
-import { loadProvider, loadNetwork, loadAccount, loadAggregatorContract, loadBestExchange } from '../store/interactions';
+import { loadProvider, loadNetwork, loadAccount, loadAggregatorContract, loadBestRate } from '../store/interactions';
 
 
 // Config: Import your network config here
@@ -38,6 +39,9 @@ function App() {
 
     // Load contracts
     const aggregator = await loadAggregatorContract(provider, '1', dispatch)
+
+    // Load best rate
+    const bestRate = await loadBestRate(aggregator, dispatch);
   }
 
   useEffect(() => {
