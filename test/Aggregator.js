@@ -64,6 +64,17 @@ describe("Aggregator Contract", function () {
     console.log("Best AMM is:", AMM.toString());
     expect(rate).to.be.gt(0);
   });
+  it("Should return the best sell and buy rates for WBTC to DAI using aggregator", async function () {
+    const amount = ethers.utils.parseUnits("1", 8);  // Assuming 8 decimals for the token
+    const [sellRate, sellAMM] = await aggregator.calculateBestRate(WBTC, DAI, amount, false);
+    console.log("Best sell rate for 1 WBTC to DAI using aggregator is:", ethers.utils.formatUnits(sellRate, 18));
+    console.log("Best AMM is:", sellAMM.toString());
+    expect(sellRate).to.be.gt(0);
+    const [buyRate, buyAMM] = await aggregator.calculateBestRate(WBTC, DAI, amount, true);
+    console.log("Best buy rate for 1 WBTC to DAI using aggregator is:", ethers.utils.formatUnits(buyRate, 18));
+    console.log("Best AMM is:", buyAMM.toString());
+    expect(buyRate).to.be.gt(0);
+  });
 
  
   async function getDirectRateFromSingleAMM(ammAddress, token1, token2, amount, isBuying) {

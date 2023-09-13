@@ -4,18 +4,22 @@ export const aggregator = createSlice({
     name: 'aggregator',
     initialState: {
         contract: null,
-        bestRate: null
+        rate: 0,
+        AMM: null
     },
     reducers: {
         setAggregatorContract: (state, action) => {
             state.contract = action.payload
         },
-        setBestRate: (state, action) => {
-            state.bestRate = action.payload
+        setRate: (state, action) => {
+            state.rate = action.payload
+        },
+        setAMM: (state, action) => {
+            state.AMM = action.payload
         }
     }
 })
 
-export const { setAggregatorContract, setBestRate } = aggregator.actions;
+export const { setAggregatorContract, setRate, setAMM } = aggregator.actions;
 
 export default aggregator.reducer;

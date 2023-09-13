@@ -12,7 +12,7 @@ import Withdraw from './Withdraw';
 import Charts from './Charts';
 import Tabs from './Tabs';
 
-import { loadProvider, loadNetwork, loadAccount, loadAggregatorContract, loadBestRate } from '../store/interactions';
+import { loadProvider, loadNetwork, loadAccount, loadAggregatorContract } from '../store/interactions';
 
 
 // Config: Import your network config here
@@ -40,9 +40,7 @@ function App() {
     // Load contracts
     const aggregator = await loadAggregatorContract(provider, '1', dispatch)
 
-    // Load best rate
-    const bestRate = await loadBestRate(aggregator, dispatch);
-  }
+    }
 
   useEffect(() => {
     loadBlockchainData()
