@@ -22,7 +22,6 @@ const Swap = () => {
   const [outputToken, setOutputToken] = useState(null)
   const [inputAmount, setInputAmount] = useState(0)
   const [outputAmount, setOutputAmount] = useState(0)
-  const [isBuying, setIsBuying] = useState(false)
 
   const dispatch = useDispatch()
 
@@ -37,7 +36,7 @@ const Swap = () => {
   const tokenAddressMap = {
     "WETH": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
     "DAI": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-    "WBTC": "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"
+    "MATIC": "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0"
   };
   const AMMAddressMap = {
     "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D": "Uniswap",
@@ -50,19 +49,13 @@ const Swap = () => {
     if (inputToken && outputToken) {
       const inputTokenAddress = tokenAddressMap[inputToken]; // Get address from map
       const outputTokenAddress = tokenAddressMap[outputToken]; // Get address from map
-      //const amount = ethers.utils.parseUnits(inputAmount.toString(), 18);
 
-      // If the output token is DAI, then we are selling and need to set isBuying to false
-      if (outputToken === "DAI") {
-        setIsBuying(false);
-      } else {
-        setIsBuying(true);
-      }
-      
+      // User should always want the highest amount of output tokens
+
       // Pass the dispatch function to getBestRate
-      getBestRate(dispatch, aggregator, inputTokenAddress, outputTokenAddress, ethers.utils.parseUnits('1', 18), isBuying);
+      getBestRate(dispatch, aggregator, inputTokenAddress, outputTokenAddress, ethers.utils.parseUnits('1', 18));
     }
-  }, [inputToken, outputToken, inputAmount, isBuying, dispatch, aggregator]);
+  }, [inputToken, outputToken, inputAmount, dispatch, aggregator]);
   
 
   return (
@@ -93,7 +86,7 @@ const Swap = () => {
               >
                 <Dropdown.Item onClick={(e) => setInputToken(e.target.innerHTML)} >WETH</Dropdown.Item>
                 <Dropdown.Item onClick={(e) => setInputToken(e.target.innerHTML)} >DAI</Dropdown.Item>
-                <Dropdown.Item onClick={(e) => setInputToken(e.target.innerHTML)} >WBTC</Dropdown.Item>
+                <Dropdown.Item onClick={(e) => setInputToken(e.target.innerHTML)} >MATIC</Dropdown.Item>
               </DropdownButton>
             </InputGroup>
           </Row>
@@ -118,7 +111,7 @@ const Swap = () => {
               >
                 <Dropdown.Item onClick={(e) => setOutputToken(e.target.innerHTML)}>WETH</Dropdown.Item>
                 <Dropdown.Item onClick={(e) => setOutputToken(e.target.innerHTML)}>DAI</Dropdown.Item>
-                <Dropdown.Item onClick={(e) => setOutputToken(e.target.innerHTML)}>WBTC</Dropdown.Item>
+                <Dropdown.Item onClick={(e) => setOutputToken(e.target.innerHTML)}>MATIC</Dropdown.Item>
               </DropdownButton>
             </InputGroup>
           </Row>

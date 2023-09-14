@@ -14,7 +14,7 @@ async function main() {
     "0x03f7724180AA6b939894B5Ca4314783B0b36b329", // ShibaSwap Router
     "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", // WETH
     "0x6B175474E89094C44Da98b954EedeAC495271d0F", // DAI
-    "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599" // WBTC
+    "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0" // MATIC
     );
   await aggregator.deployed();
 

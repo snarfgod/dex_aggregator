@@ -47,8 +47,8 @@ export const loadAggregatorContract = async (provider, chainId, dispatch) => {
 }
 
 //Get rate from best AMM
-export const getBestRate = async (dispatch, aggregator, inputToken, outputToken, amount, isBuying) => {
-  const [rate, AMM] = await aggregator.calculateBestRate(inputToken, outputToken, amount, isBuying)
+export const getBestRate = async (dispatch, aggregator, inputToken, outputToken, amount) => {
+  const [rate, AMM] = await aggregator.calculateBestRate(inputToken, outputToken, amount)
   dispatch(setRate(ethers.utils.formatUnits(rate, 18)))
   dispatch(setAMM(AMM))
   return [rate, AMM]

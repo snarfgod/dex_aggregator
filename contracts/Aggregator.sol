@@ -30,7 +30,7 @@ contract Aggregator {
         wbtc = _wbtc;
     }
 
-    function calculateBestRate(address token1, address token2, uint256 amount, bool isBuying) external view returns (uint256 bestRate, IUniswapLike bestAMM) {
+    function calculateBestRate(address token1, address token2, uint256 amount) external view returns (uint256 bestRate, IUniswapLike bestAMM) {
         require(token1 != address(0) && token2 != address(0), "Token addresses cannot be zero");
         require(amount > 0, "Amount must be greater than zero");
         address[] memory path = new address[](2);
@@ -39,22 +39,20 @@ contract Aggregator {
         uint256[] memory amm1Price = amm1.getAmountsOut(amount, path);
         uint256[] memory amm2Price = amm2.getAmountsOut(amount, path);
         uint256[] memory amm3Price = amm3.getAmountsOut(amount, path);
-        if (!isBuying ) {
-            if (amm1Price[1] > amm2Price[1] && amm1Price[1] > amm3Price[1]) {
-                return (amm1Price[1], amm1);
-            } else if (amm2Price[1] > amm1Price[1] && amm2Price[1] > amm3Price[1]) {
-                return (amm2Price[1], amm2);
-            } else {
-                return (amm3Price[1], amm3);
-            }
-        } else {
-            if (amm1Price[1] < amm2Price[1] && amm1Price[1] < amm3Price[1]) {
-                return (amm1Price[1], amm1);
-            } else if (amm2Price[1] < amm1Price[1] && amm2Price[1] < amm3Price[1]) {
-                return (amm2Price[1], amm2);
-            } else {
-                return (amm3Price[1], amm3);
-            }
+
+        //User will always want the highest output for any input
+        
+        //Check if amm1 is the best
+        if (amm1Price[1] > amm2Price[1] && amm1Price[1] > amm3Price[1]) {
+            return (amm1Price[1], amm1);
+        }
+        //Check if amm2 is the best
+        else if (amm2Price[1] > amm1Price[1] && amm2Price[1] > amm3Price[1]) {
+            return (amm2Price[1], amm2);
+        }
+        //Check if amm3 is the best
+        else if (amm3Price[1] > amm1Price[1] && amm3Price[1] > amm2Price[1]) {
+            return (amm3Price[1], amm3);
         }
     }
 }
