@@ -6,6 +6,12 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 // Interface for Uniswap-like AMMs
 interface IUniswapLike {
     function getAmountsOut(uint256 amountIn, address[] calldata path) external view returns (uint[] memory amounts);
+    function swapExactTokensForTokens(uint256 amountIn, uint256 amountOutMin, address[] calldata path, address to, uint256 deadline) external returns(uint[] memory amounts);
+}
+
+// Interface for ERC20 tokens
+interface IERC20 {
+    function approve(address spender, uint256 amount) external returns (bool);
 }
 
 contract Aggregator {
@@ -54,5 +60,19 @@ contract Aggregator {
         else if (amm3Price[1] > amm1Price[1] && amm3Price[1] > amm2Price[1]) {
             return (amm3Price[1], amm3);
         }
+    }
+
+    function executeSwap(IUniswapLike amm, address token1, address token2, uint256 amount) external {
+        require(token1 != address(0) && token2 != address(0), "Token addresses cannot be zero");
+        require(amount > 0, "Amount must be greater than zero");
+        address[] memory path = new address[](2);
+        path[0] = token1;
+        path[1] = token2;
+        uint256[] memory ammPrice = amm.getAmountsOut(amount, path);
+        uint256 amountOutMin = ammPrice[1].mul(90).div(100);
+        IERC20(token1).approve(address(amm), amount);
+
+        //Execute swap
+        amm.swapExactTokensForTokens(amount, amountOutMin, path, msg.sender, block.timestamp + 1500);
     }
 }

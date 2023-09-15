@@ -55,6 +55,30 @@ const Swap = () => {
     return num.toFixed(6);  // Up to 6 decimal places for numbers between 0 and 1
   };
 
+  const executeSwap = async () => {
+    if (!AMM || !aggregator || !inputToken || !outputToken || inputAmount <= 0) {
+      // Show an alert or some notification to the user
+      console.error("Missing required parameters for the swap");
+      return;
+    }
+
+    const signer = await aggregator.provider.getSigner(account);
+    const contract = new ethers.Contract(aggregator.address, aggregator.interface, signer);
+
+    const path = [tokenAddressMap[inputToken], tokenAddressMap[outputToken]];
+    const amountIn = ethers.utils.parseUnits(inputAmount.toString(), 18);
+    const amountOutMin = ethers.utils.parseUnits(outputAmount.toString(), 18); // Replace with actual minimum output amount
+    const deadline = Math.floor(Date.now() / 1000) + 60 * 20; // 20 minutes from the current Unix time
+
+    try {
+      const tx = await contract.swapExactTokensForTokens(amountIn, amountOutMin, path, account, deadline, { gasLimit: 21000 });
+      await tx.wait();
+      console.log("Swap executed successfully");
+    } catch (error) {
+      console.error("Error executing swap:", error);
+    }
+  };
+
   // Get the best rate from the aggregator contract with selected tokens and amount if input and output tokens are selected
   useEffect(() => {
     if (inputToken && outputToken) {

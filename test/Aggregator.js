@@ -16,6 +16,7 @@ describe("Aggregator Contract", function () {
     const Aggregator = await ethers.getContractFactory("Aggregator");
     accounts = await ethers.getSigners();
     owner = accounts[0];
+    user = accounts[1];
     
     // Deploy the aggregator with AMMs and intermediate tokens
     aggregator = await Aggregator.deploy(UNISWAP, SUSHISWAP, SHIBASWAP, WETH, DAI, MATIC);
@@ -23,7 +24,6 @@ describe("Aggregator Contract", function () {
   });
 
   it("Should deploy the Aggregator", async function () {
-
     expect(aggregator.address).to.be.properAddress;
   });
 
@@ -107,6 +107,51 @@ describe("Aggregator Contract", function () {
     console.log("Best AMM is:", buyAMM.toString());
     expect(buyRate).to.be.gt(0);
   });
+  describe("Swap", function () {
+    it("Correctly swaps WETH to DAI", async function () {
+      const WETHInterface = new ethers.utils.Interface([
+        "function deposit() external payable",
+        "function balanceOf(address account) external view returns (uint256)",
+        "function approve(address spender, uint256 amount) external returns (bool)",
+        "function allowance(address owner, address spender) external view returns (uint256)",
+      ]);
+      const weth = new ethers.Contract(WETH, WETHInterface, user);
+      const dai = new ethers.Contract(DAI, WETHInterface, user);
+      // Wrap ether
+      let transaction = await weth.connect(user).deposit({ value: ethers.utils.parseEther("100") });
+      await transaction.wait()
+      // Check WETH balance
+      const wethBalance = await weth.balanceOf(user.address);
+      expect(wethBalance).to.be.gt(0);
+      console.log("WETH balance is:", ethers.utils.formatUnits(wethBalance, 18))
+      // Get best AMM
+      const [rate, AMM] = await aggregator.calculateBestRate(WETH, DAI, ethers.utils.parseEther('1'));
+      // Approve aggregator to spend WETH
+      transaction = await weth.connect(user).approve(AMM, ethers.utils.parseEther("100"));
+      await transaction.wait()
+      transaction = await weth.connect(user).approve(aggregator.address, ethers.utils.parseEther("100"));
+      await transaction.wait()
+      // Check allowance
+      let allowance = await weth.allowance(user.address, AMM);
+      console.log("Allowance for AMM:", ethers.utils.formatEther(allowance));
+      allowance = await weth.allowance(user.address, aggregator.address);
+      console.log("Allowance for aggregator:", ethers.utils.formatEther(allowance));
+      // Execute swap
+      try {
+        transaction = await aggregator.connect(user).executeSwap(AMM, WETH, DAI, ethers.utils.parseEther('1'), { gasLimit: 400000 });
+        await transaction.wait();
+      } catch (error) {
+        console.log("Swap transaction failed:", error);
+      }
+      // Check weth balance after swap
+      const wethBalanceAfterSwap = await weth.balanceOf(user.address);
+      expect(wethBalanceAfterSwap).to.be.lt(wethBalance);
+
+      // Check dai balance after swap
+      const daiBalance = await dai.balanceOf(user.address);
+      expect(daiBalance).to.be.gt(0);
+    });
+  });
 
  
   async function getDirectRateFromSingleAMM(ammAddress, token1, token2, amount) {
@@ -115,4 +160,5 @@ describe("Aggregator Contract", function () {
     const rates = await amm.getAmountsOut(amount, path);
     return rates[1];
   }
+  
 });
