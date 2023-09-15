@@ -90,11 +90,6 @@
         "internalType": "uint256",
         "name": "amount",
         "type": "uint256"
-      },
-      {
-        "internalType": "bool",
-        "name": "isBuying",
-        "type": "bool"
       }
     ],
     "name": "calculateBestRate",

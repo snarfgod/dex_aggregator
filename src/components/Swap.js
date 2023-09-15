@@ -16,6 +16,8 @@ import {
   getBestRate
 } from '../store/interactions'
 
+const { BigNumber } = require("@ethersproject/bignumber");
+
 const Swap = () => {
   //Initiate variables
   const [inputToken, setInputToken] = useState(null)
@@ -44,18 +46,39 @@ const Swap = () => {
     "0x03f7724180AA6b939894B5Ca4314783B0b36b329": "ShibaSwap"
   }
 
+  // Function to format the output based on the magnitude
+  const formatOutput = (number) => {
+    const num = parseFloat(number);
+    if (num === 0) return '0';
+    if (num >= 1) return num.toFixed(2);  // 2 decimal places for numbers >= 1
+    if (num < 1e-4) return num.toExponential(2);  // Scientific notation for very small numbers
+    return num.toFixed(6);  // Up to 6 decimal places for numbers between 0 and 1
+  };
+
   // Get the best rate from the aggregator contract with selected tokens and amount if input and output tokens are selected
   useEffect(() => {
     if (inputToken && outputToken) {
       const inputTokenAddress = tokenAddressMap[inputToken]; // Get address from map
       const outputTokenAddress = tokenAddressMap[outputToken]; // Get address from map
-
-      // User should always want the highest amount of output tokens
-
+  
       // Pass the dispatch function to getBestRate
       getBestRate(dispatch, aggregator, inputTokenAddress, outputTokenAddress, ethers.utils.parseUnits('1', 18));
+  
+      if(inputAmount > 0) {
+        const amountInWei = ethers.utils.parseUnits(inputAmount.toString(), 18); // Convert to wei
+        const rateInWei = ethers.utils.parseUnits(rate.toString(), 18); // Convert rate to wei
+
+        // Use BigNumber for accurate calculations
+        const estimatedOutputInWei = amountInWei.mul(rateInWei).div(ethers.utils.parseUnits('1', 18));
+        
+        // Convert back to human-readable form
+        const scaledDownOutput = ethers.utils.formatUnits(estimatedOutputInWei, 18); // This will divide by 10^18
+
+        setOutputAmount(scaledDownOutput);
+      }
     }
-  }, [inputToken, outputToken, inputAmount, dispatch, aggregator]);
+  }, [inputToken, outputToken, inputAmount, rate, dispatch, aggregator]);
+  
   
 
   return (
@@ -67,9 +90,6 @@ const Swap = () => {
           <Row className='my-3'>
             <div className='d-flex justify-content-between'>
               <Form.Label><strong>You give:</strong></Form.Label>
-              <Form.Text muted>
-                
-              </Form.Text>
             </div>
             <InputGroup>
               <Form.Control
@@ -77,7 +97,8 @@ const Swap = () => {
                 placeholder="0.0"
                 min="0.0"
                 step="any"
-                //onChange={(e) => inputHandler(e) }
+                value={inputAmount ? inputAmount : '0'}
+                onChange={(e) => setInputAmount(e.target.value)}
                 disabled={!inputToken}
               />
               <DropdownButton
@@ -103,6 +124,7 @@ const Swap = () => {
                 type="number"
                 placeholder="0.0"
                 min="0.0"
+                value={outputAmount}
                 disabled
               />
               <DropdownButton
@@ -120,7 +142,7 @@ const Swap = () => {
               <Button type='submit'>Swap</Button>
             {inputToken && outputToken ? (
               <Form.Text muted>
-              Estimated price: {rate} {outputToken} per {inputToken} on {AMMAddressMap[AMM]}
+              Estimated price: {formatOutput(rate)} {outputToken} per {inputToken} on {AMMAddressMap[AMM]}
               </Form.Text>
             ) : (
               <Form.Text muted>
