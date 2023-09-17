@@ -10,7 +10,7 @@ describe("Aggregator Contract", function () {
   const DAI = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
   const MATIC = "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0";
 
-  let rate, AMM, accounts, aggregator, owner;
+  let transaction, amount, rate, AMM, accounts, aggregator, owner, wethContract, daiContract, user;
 
   beforeEach(async function () {
     const Aggregator = await ethers.getContractFactory("Aggregator");
@@ -21,138 +21,270 @@ describe("Aggregator Contract", function () {
     // Deploy the aggregator with AMMs and intermediate tokens
     aggregator = await Aggregator.deploy(UNISWAP, SUSHISWAP, SHIBASWAP, WETH, DAI, MATIC);
     await aggregator.deployed();
+    amount = ethers.utils.parseUnits("1", 18) //Assuming 18 decimals for the token
   });
-
   it("Should deploy the Aggregator", async function () {
     expect(aggregator.address).to.be.properAddress;
   });
-
-  it("Should return the swap rate for 1 WETH to DAI from Uniswap", async function () {
-    const amount = ethers.utils.parseUnits("1", 18);  // Assuming 18 decimals for the token
-    const rate = await getDirectRateFromSingleAMM(UNISWAP, WETH, DAI, amount);
-    console.log("swap rate for 1 WETH to DAI on Uniswap is:", ethers.utils.formatUnits(rate, 18));
-    expect(rate).to.be.gt(0);
-  });
-
-  it("Should return the swap rate for 1 WETH to DAI from SushiSwap", async function () {
-    const amount = ethers.utils.parseUnits("1", 18);  // Assuming 18 decimals for the token
-    const rate = await getDirectRateFromSingleAMM(SUSHISWAP, WETH, DAI, amount);
-    console.log("swap rate for 1 WETH to DAI on SushiSwap is:", ethers.utils.formatUnits(rate, 18));
-    expect(rate).to.be.gt(0);
-  });
-
-  it("Should return the swap rate for 1 WETH to DAI from ShibaSwap", async function () {
-    const amount = ethers.utils.parseUnits("1", 18);  // Assuming 18 decimals for the token
-    const rate = await getDirectRateFromSingleAMM(SHIBASWAP, WETH, DAI, amount);
-    console.log("swap rate for 1 WETH to DAI on ShibaSwap is:", ethers.utils.formatUnits(rate, 18));
-    expect(rate).to.be.gt(0);
-  });
-
-  it("Should return the price of 1WBTC to DAI on Uniswap", async () => {
-    const amount = ethers.utils.parseUnits("1", 18);  // Assuming 18 decimals for the token
-    const rate = await getDirectRateFromSingleAMM(UNISWAP, MATIC, DAI, amount);
-    console.log("swap rate for 1 MATIC to DAI on Uniswap is:", ethers.utils.formatUnits(rate, 18));
-    expect(rate).to.be.gt(0);
-  })
-
-  it("Should return the price of MATIC to WETH on Uniswap", async () => {
-    const amount = ethers.utils.parseUnits("1", 18);  // Assuming 18 decimals for the token
-    const rate = await getDirectRateFromSingleAMM(UNISWAP, MATIC, WETH, amount);
-    console.log("swap rate for 1 MATIC to WETH on Uniswap is:", ethers.utils.formatUnits(rate, 18));
-    expect(rate).to.be.gt(0);
-  })
-
-  it("Should return the price of WETH to MATIC on Uniswap", async () => {
-    const amount = ethers.utils.parseUnits("1", 18);  // Assuming 18 decimals for the token
-    const rate = await getDirectRateFromSingleAMM(UNISWAP, WETH, MATIC, amount);
-    console.log("Sell rate for 1 WETH to MATIC on Uniswap is:", ethers.utils.formatUnits(rate, 18));
-    expect(rate).to.be.gt(0);
-  })
-  it("Should return the best price of DAI to MATIC on Shibaswap", async () => {
-    const amount = ethers.utils.parseUnits("1", 18);  // Assuming 18 decimals for the token
-    const rate = await getDirectRateFromSingleAMM(SHIBASWAP, DAI, MATIC, amount);
-    console.log("Swap rate for 1 DAI to MATIC on Shibaswap is:", ethers.utils.formatUnits(rate, 18));
-    expect(rate).to.be.gt(0);
-  })
-  it("Should return the best price of MATIC to DAI on Shibaswap", async () => {
-    const amount = ethers.utils.parseUnits("1", 18);  // Assuming 18 decimals for the token
-    const rate = await getDirectRateFromSingleAMM(SHIBASWAP, MATIC, DAI, amount);
-    console.log("Swap rate for 1 MATIC to DAI on Shibaswap is:", ethers.utils.formatUnits(rate, 18));
-    expect(rate).to.be.gt(0);
-  })
-
-  it("Should return the best swap rate for 1 WETH to DAI using aggregator", async function () {
-    const amount = ethers.utils.parseUnits("1", 18);  // Assuming 18 decimals for the token
-    const [rate, AMM] = await aggregator.calculateBestRate(WETH, DAI, amount);
-    console.log("Best swap rate for 1 WETH to DAI using aggregator is:", ethers.utils.formatUnits(rate, 18));
-    console.log("Best AMM is:", AMM.toString());
-    expect(rate).to.be.gt(0);
-  });
   
-  it("Should return the best swap rate for 1 WETH to DAI using aggregator", async function () {
-    const amount = ethers.utils.parseUnits("1", 18);  // Assuming 18 decimals for the token
-    const [rate, AMM] = await aggregator.calculateBestRate(WETH, DAI, amount);
-    console.log("Best swap rate for 1 WETH to DAI using aggregator is:", ethers.utils.formatUnits(rate, 18));
-    console.log("Best AMM is:", AMM.toString());
-    expect(rate).to.be.gt(0);
-  });
-  it("Should return the best swap rates for MATIC to DAI using aggregator", async function () {
-    const amount = ethers.utils.parseUnits("1", 18);  // Assuming 8 decimals for the token
-    const [sellRate, sellAMM] = await aggregator.calculateBestRate(MATIC, DAI, amount);
-    console.log("Best swap rate for 1 MATIC to DAI using aggregator is:", ethers.utils.formatUnits(sellRate, 18));
-    console.log("Best AMM is:", sellAMM.toString());
-    expect(sellRate).to.be.gt(0);
-    const [buyRate, buyAMM] = await aggregator.calculateBestRate(DAI, MATIC, amount);
-    console.log("Best swap rate for 1 DAI to MATIC using aggregator is:", ethers.utils.formatUnits(buyRate, 18));
-    console.log("Best AMM is:", buyAMM.toString());
-    expect(buyRate).to.be.gt(0);
-  });
-  describe("Swap", function () {
-    it("Correctly swaps WETH to DAI", async function () {
-      const WETHInterface = new ethers.utils.Interface([
-        "function deposit() external payable",
-        "function balanceOf(address account) external view returns (uint256)",
-        "function approve(address spender, uint256 amount) external returns (bool)",
-        "function allowance(address owner, address spender) external view returns (uint256)",
-      ]);
-      const weth = new ethers.Contract(WETH, WETHInterface, user);
-      const dai = new ethers.Contract(DAI, WETHInterface, user);
-      // Wrap ether
-      let transaction = await weth.connect(user).deposit({ value: ethers.utils.parseEther("100") });
-      await transaction.wait()
-      // Check WETH balance
-      const wethBalance = await weth.balanceOf(user.address);
-      expect(wethBalance).to.be.gt(0);
-      console.log("WETH balance is:", ethers.utils.formatUnits(wethBalance, 18))
-      // Get best AMM
-      const [rate, AMM] = await aggregator.calculateBestRate(WETH, DAI, ethers.utils.parseEther('1'));
-      // Approve aggregator to spend WETH
-      transaction = await weth.connect(user).approve(AMM, ethers.utils.parseEther("100"));
-      await transaction.wait()
-      transaction = await weth.connect(user).approve(aggregator.address, ethers.utils.parseEther("100"));
-      await transaction.wait()
-      // Check allowance
-      let allowance = await weth.allowance(user.address, AMM);
-      console.log("Allowance for AMM:", ethers.utils.formatEther(allowance));
-      allowance = await weth.allowance(user.address, aggregator.address);
-      console.log("Allowance for aggregator:", ethers.utils.formatEther(allowance));
-      // Execute swap
-      try {
-        transaction = await aggregator.connect(user).executeSwap(AMM, WETH, DAI, ethers.utils.parseEther('1'), { gasLimit: 400000 });
-        await transaction.wait();
-      } catch (error) {
-        console.log("Swap transaction failed:", error);
-      }
-      // Check weth balance after swap
-      const wethBalanceAfterSwap = await weth.balanceOf(user.address);
-      expect(wethBalanceAfterSwap).to.be.lt(wethBalance);
-
-      // Check dai balance after swap
-      const daiBalance = await dai.balanceOf(user.address);
-      expect(daiBalance).to.be.gt(0);
+  describe("Gets swap rates directly from exchanges", async () => {
+    
+    describe("Uniswap", async () => {
+      it("Should return the output for 1 WETH to DAI from Uniswap", async function () {
+        const rate = await getDirectRateFromSingleAMM(UNISWAP, WETH, DAI, amount);
+        console.log("Output for 1 WETH to DAI on Uniswap is:", ethers.utils.formatUnits(rate, 18));
+        expect(rate).to.be.gt(0);
+      });
+      it("Should return the output of 1 DAI to WETH on Uniswap", async () => {
+        const rate = await getDirectRateFromSingleAMM(UNISWAP, DAI, WETH, amount)
+        console.log("Output from one DAI to WETH on Uniswap is:", ethers.utils.formatUnits(rate, 18))
+        expect(rate).to.be.gt(0);
+      })
+      it("Should return the output of 1 MATIC to DAI on Uniswap", async () => {
+        const rate = await getDirectRateFromSingleAMM(UNISWAP, MATIC, DAI, amount);
+        console.log("Output for 1 MATIC to DAI on Uniswap is:", ethers.utils.formatUnits(rate, 18));
+        expect(rate).to.be.gt(0);
+      })
+      it("Should return the output of 1 DAI to MATIC on Uniswap", async () => {
+        const rate = await getDirectRateFromSingleAMM(UNISWAP, DAI, MATIC, amount);
+        console.log("Output for 1 DAI to MATIC on Uniswap is:", ethers.utils.formatUnits(rate, 18));
+        expect(rate).to.be.gt(0);
+      })
+      it("Should return the output of 1 MATIC to WETH on Uniswap", async () => {
+        const rate = await getDirectRateFromSingleAMM(UNISWAP, MATIC, WETH, amount);
+        console.log("Output for 1 MATIC to WETH on Uniswap is:", ethers.utils.formatUnits(rate, 18));
+        expect(rate).to.be.gt(0);
+      })
+      it("Should return the output of 1 WETH to MATIC on Uniswap", async () => {
+        const rate = await getDirectRateFromSingleAMM(UNISWAP, WETH, MATIC, amount);
+        console.log("Output for 1 WETH to MATIC on Uniswap is:", ethers.utils.formatUnits(rate, 18));
+        expect(rate).to.be.gt(0);
+      })
+    })
+    describe("Sushiswap", async () => {
+      it("Should return the swap rate for 1 WETH to DAI from SushiSwap", async function () {
+        const rate = await getDirectRateFromSingleAMM(SUSHISWAP, WETH, DAI, amount);
+        console.log("swap rate for 1 WETH to DAI on SushiSwap is:", ethers.utils.formatUnits(rate, 18));
+        expect(rate).to.be.gt(0);
+      });
+      it("Should return the output of 1 DAI to WETH on Uniswap", async () => {
+        const rate = await getDirectRateFromSingleAMM(SUSHISWAP, DAI, WETH, amount)
+        console.log("Output from one DAI to WETH on SushiSwap is:", ethers.utils.formatUnits(rate, 18))
+        expect(rate).to.be.gt(0);
+      })
+      it("Should return the output of 1 MATIC to DAI on SushiSwap", async () => {
+        const rate = await getDirectRateFromSingleAMM(SUSHISWAP, MATIC, DAI, amount);
+        console.log("Output for 1 MATIC to DAI on SushiSwap is:", ethers.utils.formatUnits(rate, 18));
+        expect(rate).to.be.gt(0);
+      })
+      it("Should return the output of 1 DAI to MATIC on SushiSwap", async () => {
+        const rate = await getDirectRateFromSingleAMM(SUSHISWAP, DAI, MATIC, amount);
+        console.log("Output for 1 DAI to MATIC on SushiSwap is:", ethers.utils.formatUnits(rate, 18));
+        expect(rate).to.be.gt(0);
+      })
+      it("Should return the output of 1 MATIC to WETH on SushiSwap", async () => {
+        const rate = await getDirectRateFromSingleAMM(SUSHISWAP, MATIC, WETH, amount);
+        console.log("Output for 1 MATIC to WETH on SushiSwap is:", ethers.utils.formatUnits(rate, 18));
+        expect(rate).to.be.gt(0);
+      })
+      it("Should return the output of 1 WETH to MATIC on SushiSwap", async () => {
+        const rate = await getDirectRateFromSingleAMM(SUSHISWAP, WETH, MATIC, amount);
+        console.log("Output for 1 WETH to MATIC on SushiSwap is:", ethers.utils.formatUnits(rate, 18));
+        expect(rate).to.be.gt(0);
+      })
+    })
+    describe("Shibaswap", async () => {
+      it("Should return the output for 1 WETH to DAI from SHIBASWAP", async function () {
+        const rate = await getDirectRateFromSingleAMM(SHIBASWAP, WETH, DAI, amount);
+        console.log("Output for 1 WETH to DAI on SHIBASWAP is:", ethers.utils.formatUnits(rate, 18));
+        expect(rate).to.be.gt(0);
+      });
+      it("Should return the output of 1 DAI to WETH on SHIBASWAP", async () => {
+        const rate = await getDirectRateFromSingleAMM(SHIBASWAP, DAI, WETH, amount)
+        console.log("Output from one DAI to WETH on SHIBASWAP is:", ethers.utils.formatUnits(rate, 18))
+        expect(rate).to.be.gt(0);
+      })
+      it("Should return the output of 1 MATIC to DAI on SHIBASWAP", async () => {
+        const rate = await getDirectRateFromSingleAMM(SHIBASWAP, MATIC, DAI, amount);
+        console.log("Output for 1 MATIC to DAI on SHIBASWAP is:", ethers.utils.formatUnits(rate, 18));
+        expect(rate).to.be.gt(0);
+      })
+      it("Should return the output of 1 DAI to MATIC on SHIBASWAP", async () => {
+        const rate = await getDirectRateFromSingleAMM(SHIBASWAP, DAI, MATIC, amount);
+        console.log("Output for 1 DAI to MATIC on SHIBASWAP is:", ethers.utils.formatUnits(rate, 18));
+        expect(rate).to.be.gt(0);
+      })
+      it("Should return the output of 1 MATIC to WETH on SHIBASWAP", async () => {
+        const rate = await getDirectRateFromSingleAMM(SHIBASWAP, MATIC, WETH, amount);
+        console.log("Output for 1 MATIC to WETH on SHIBASWAP is:", ethers.utils.formatUnits(rate, 18));
+        expect(rate).to.be.gt(0);
+      })
+      it("Should return the output of 1 WETH to MATIC on SHIBASWAP", async () => {
+        const rate = await getDirectRateFromSingleAMM(SHIBASWAP, WETH, MATIC, amount);
+        console.log("Output for 1 WETH to MATIC on SHIBASWAP is:", ethers.utils.formatUnits(rate, 18));
+        expect(rate).to.be.gt(0);
+      })
+    })
+  })
+  describe("Aggregator calculates best AMM and price", async () => {
+    beforeEach(async () => {
+      const amount = ethers.utils.parseUnits("1", 18) //Assuming 18 decimals for the token
+    })
+    it("Should return the best swap rate for 1 WETH to DAI using aggregator", async function () {
+      const [rate, AMM] = await aggregator.calculateBestRate(WETH, DAI, amount);
+      console.log("Best swap rate for 1 WETH to DAI using aggregator is:", ethers.utils.formatUnits(rate, 18));
+      console.log("Best AMM is:", AMM.toString());
+      expect(rate).to.be.gt(0);
     });
-  });
+    it("Should return the best swap rate for 1 DAI to WETH using aggregator", async function () {
+      const [rate, AMM] = await aggregator.calculateBestRate(DAI, WETH, amount);
+      console.log("Best swap rate for 1 DAI to WETH using aggregator is:", ethers.utils.formatUnits(rate, 18));
+      console.log("Best AMM is:", AMM.toString());
+      expect(rate).to.be.gt(0);
+    });
+    it("Should return the best swap rate for 1 MATIC to DAI using aggregator", async function () {
+      const [rate, AMM] = await aggregator.calculateBestRate(MATIC, DAI, amount);
+      console.log("Best swap rate for 1 MATIC to DAI using aggregator is:", ethers.utils.formatUnits(rate, 18));
+      console.log("Best AMM is:", AMM.toString());
+      expect(rate).to.be.gt(0);
+    });
+    it("Should return the best swap rate for 1 DAI to MATIC using aggregator", async function () {
+      const [rate, AMM] = await aggregator.calculateBestRate(DAI, MATIC, amount);
+      console.log("Best swap rate for 1 DAI to MATIC using aggregator is:", ethers.utils.formatUnits(rate, 18));
+      console.log("Best AMM is:", AMM.toString());
+      expect(rate).to.be.gt(0);
+    });
+    it("Should return the best swap rate for 1 WETH to MATIC using aggregator", async function () {
+      const [rate, AMM] = await aggregator.calculateBestRate(WETH, MATIC, amount);
+      console.log("Best swap rate for 1 WETH to MATIC using aggregator is:", ethers.utils.formatUnits(rate, 18));
+      console.log("Best AMM is:", AMM.toString());
+      expect(rate).to.be.gt(0);
+    });
+    it("Should return the best swap rate for 1 MATIC to WETH using aggregator", async function () {
+      const [rate, AMM] = await aggregator.calculateBestRate(MATIC, WETH, amount);
+      console.log("Best swap rate for 1 MATIC to WETH using aggregator is:", ethers.utils.formatUnits(rate, 18));
+      console.log("Best AMM is:", AMM.toString());
+      expect(rate).to.be.gt(0);
+    });
+  })
+  describe("Swapping directly on each exchange", async () => {
+    beforeEach(async () => {
+      //Wrap Ether for swaps
+      wethContract = new ethers.Contract(WETH, ["function deposit() external payable", "function balanceOf(address user) external returns(uint256 amount)", "function approve(address to, uint256 amount) external returns(bool)"])
+      transaction = await wethContract.connect(user).deposit({value:amount})
+      await transaction.wait()
+      daiContract = new ethers.Contract(DAI, ["function approve(address to, uint256 amount) external returns(bool)", "function balanceOf(address user) external returns(uint256 amount)"])
+    })
+    describe("Uniswap", async () => {
+      it("Successfully swaps 1 WETH for DAI on Uniswap", async () => {
+        //Check ETH is wrapped
+        const wethBalanceBefore = await wethContract.connect(user).balanceOf(user.address)
+        console.log("WETH balance before swap is:", wethBalanceBefore.value)
+        //Approve aggregator to swap user's WETH with user as signer
+        transaction = await wethContract.connect(user).approve(aggregator.address, ethers.utils.parseUnits('1', 18))
+        await transaction.wait()
+        //Check DAI balance is 0
+        const daiBalanceBefore = await daiContract.connect(user).balanceOf(user.address)
+        console.log("DAI balance before swap is:", daiBalanceBefore.value)
+        //Perform Swap
+        transaction = await swapOnUniswap(WETH, DAI, ethers.utils.parseUnits('1', 18))
+        await transaction.wait()
+        //Check DAI balance is greater than 0
+        const daiBalanceAfter = await daiContract.connect(user).balanceOf(user.address)
+        console.log("DAI balance after swap is:", daiBalanceAfter.value)
+      })
+      it("Successfully swaps 1 DAI for WETH on Uniswap", async () => {
 
+      })
+      it("Successfully swaps 1 MATIC for DAI on Uniswap", async () => {
+
+      })
+      it("Successfully swaps 1 DAI for MATIC on Uniswap", async () => {
+
+      })
+      it("Successfully swaps 1 WETH for MATIC on Uniswap", async () => {
+
+      })
+      it("Successfully swaps 1 MATIC for WETH on Uniswap", async () => {
+
+      })
+    })
+    describe("SushiSwap", async () => {
+      it("Successfully swaps 1 WETH for DAI on SushiSwap", async () => {
+
+      })
+      it("Successfully swaps 1 DAI for WETH on SushiSwap", async () => {
+
+      })
+      it("Successfully swaps 1 MATIC for DAI on SushiSwap", async () => {
+
+      })
+      it("Successfully swaps 1 DAI for MATIC on SushiSwap", async () => {
+
+      })
+      it("Successfully swaps 1 WETH for MATIC on SushiSwap", async () => {
+
+      })
+      it("Successfully swaps 1 MATIC for WETH on SushiSwap", async () => {
+
+      })
+    })
+    describe("ShibaSwap", async () => {
+      it("Successfully swaps 1 WETH for DAI on ShibaSwap", async () => {
+
+      })
+      it("Successfully swaps 1 DAI for WETH on ShibaSwap", async () => {
+
+      })
+      it("Successfully swaps 1 MATIC for DAI on ShibaSwap", async () => {
+
+      })
+      it("Successfully swaps 1 DAI for MATIC on ShibaSwap", async () => {
+
+      })
+      it("Successfully swaps 1 WETH for MATIC on ShibaSwap", async () => {
+
+      })
+      it("Successfully swaps 1 MATIC for WETH on ShibaSwap", async () => {
+
+      })
+    })
+  })
+
+// Functions to test direct swaps on each exchange
+
+async function swapOnUniswap(token1, token2, amount) {
+    const uniswap = new ethers.Contract(UNISWAP, ["function swapExactTokensForTokens(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline) external returns (uint[] memory amounts)"]);
+    const path = [token1, token2];
+    const amountIn = ethers.utils.parseUnits(amount.toString(), 18);
+    const amountOutMin = 0;
+    const deadline = Math.floor(Date.now() / 1000) + 60 * 20; // 20 minutes from the current Unix time
+    const tx = await uniswap.connect(user).swapExactTokensForTokens(amountIn, amountOutMin, path, user.address, deadline, { gasLimit: 400000 });
+    await tx.wait();
+    return tx;
+  }
+
+  async function swapOnSushiswap(token1, token2, amount) {
+    const sushiswap = new ethers.Contract(SUSHISWAP, ["function swapExactTokensForTokens(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline) external returns (uint[] memory amounts)"], owner);
+    const path = [token1, token2];
+    const amountIn = ethers.utils.parseUnits(amount.toString(), 18);
+    const amountOutMin = ethers.utils.parseUnits((amount*.9).toString(), 18);
+    const deadline = Math.floor(Date.now() / 1000) + 60 * 20; // 20 minutes from the current Unix time
+    const tx = await sushiswap.swapExactTokensForTokens(amountIn, amountOutMin, path, owner.address, deadline, { gasLimit: 400000 });
+    await tx.wait();
+    return tx;
+  }
+
+  async function swapOnShibaswap(token1, token2, amount) {
+    const shibaswap = new ethers.Contract(SHIBASWAP, ["function swapExactTokensForTokens(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline) external returns (uint[] memory amounts)"], owner);
+    const path = [token1, token2];
+    const amountIn = ethers.utils.parseUnits(amount.toString(), 18);
+    const amountOutMin = ethers.utils.parseUnits((amount*.9).toString(), 18);
+    const deadline = Math.floor(Date.now() / 1000) + 60 * 20; // 20 minutes from the current Unix time
+    const tx = await shibaswap.swapExactTokensForTokens(amountIn, amountOutMin, path, owner.address, deadline, { gasLimit: 400000 });
+    await tx.wait();
+    return tx;
+  }
  
   async function getDirectRateFromSingleAMM(ammAddress, token1, token2, amount) {
     const amm = new ethers.Contract(ammAddress, ["function getAmountsOut(uint256 amountIn, address[] calldata path) external view returns (uint[] memory amounts)"], owner);
