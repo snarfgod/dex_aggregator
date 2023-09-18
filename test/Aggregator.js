@@ -10,7 +10,12 @@ describe("Aggregator Contract", function () {
   const DAI = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
   const MATIC = "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0";
 
-  let transaction, amount, rate, AMM, accounts, aggregator, owner, wethContract, daiContract, user;
+  let transaction, amount, rate, AMM, accounts, aggregator, owner, user;
+
+  const uniswap = new ethers.Contract(UNISWAP, ["function swapExactTokensForTokens(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline) external returns (uint[] memory amounts)"]);
+  const daiContract = new ethers.Contract(DAI, ["function approve(address to, uint256 amount) external returns(bool)", "function balanceOf(address user) external returns(uint256 amount)"])
+  const wethContract = new ethers.Contract(WETH, ["function deposit() external payable","function approve(address to, uint256 amount) external returns(bool)", "function balanceOf(address user) external returns(uint256 amount)"])
+  const maticContract = new ethers.Contract(MATIC, ["function approve(address to, uint256 amount) external returns(bool)", "function balanceOf(address user) external returns(uint256 amount)"])
 
   beforeEach(async function () {
     const Aggregator = await ethers.getContractFactory("Aggregator");
@@ -170,19 +175,14 @@ describe("Aggregator Contract", function () {
   describe("Swapping directly on each exchange", async () => {
     beforeEach(async () => {
       //Wrap Ether for swaps
-      wethContract = new ethers.Contract(WETH, ["function deposit() external payable", "function balanceOf(address user) external returns(uint256 amount)", "function approve(address to, uint256 amount) external returns(bool)"])
-      transaction = await wethContract.connect(user).deposit({value:amount})
+      transaction = await wethContract.connect(user).deposit({value: ethers.utils.parseEther('1')})
       await transaction.wait()
-      daiContract = new ethers.Contract(DAI, ["function approve(address to, uint256 amount) external returns(bool)", "function balanceOf(address user) external returns(uint256 amount)"])
     })
     describe("Uniswap", async () => {
       it("Successfully swaps 1 WETH for DAI on Uniswap", async () => {
-        //Check ETH is wrapped
+        //Check WETH balance, should be 1
         const wethBalanceBefore = await wethContract.connect(user).balanceOf(user.address)
         console.log("WETH balance before swap is:", wethBalanceBefore.value)
-        //Approve aggregator to swap user's WETH with user as signer
-        transaction = await wethContract.connect(user).approve(aggregator.address, ethers.utils.parseUnits('1', 18))
-        await transaction.wait()
         //Check DAI balance is 0
         const daiBalanceBefore = await daiContract.connect(user).balanceOf(user.address)
         console.log("DAI balance before swap is:", daiBalanceBefore.value)
@@ -254,14 +254,22 @@ describe("Aggregator Contract", function () {
 // Functions to test direct swaps on each exchange
 
 async function swapOnUniswap(token1, token2, amount) {
-    const uniswap = new ethers.Contract(UNISWAP, ["function swapExactTokensForTokens(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline) external returns (uint[] memory amounts)"]);
+    //check WETH balance for user
+    const wethBalanceBefore = await wethContract.connect(user).balanceOf(user.address)
+    console.log("WETH balance before swap is:", wethBalanceBefore.value)
     const path = [token1, token2];
-    const amountIn = ethers.utils.parseUnits(amount.toString(), 18);
-    const amountOutMin = 0;
+    const amountIn = amount;
+    const amountOutMin = amount;
     const deadline = Math.floor(Date.now() / 1000) + 60 * 20; // 20 minutes from the current Unix time
-    const tx = await uniswap.connect(user).swapExactTokensForTokens(amountIn, amountOutMin, path, user.address, deadline, { gasLimit: 400000 });
-    await tx.wait();
-    return tx;
+    //Approve aggregator to swap user's WETH with user as signer
+    transaction = await wethContract.connect(user).approve(uniswap.address, ethers.utils.parseUnits('1', 18))
+    await transaction.wait()
+    transaction = await uniswap.connect(user).swapExactTokensForTokens(amountIn, amountOutMin, path, user.address, deadline, { gasLimit: 400000 });
+    await transaction.wait();
+    //check WETH balance for user
+    const wethBalanceAfter = await wethContract.connect(user).balanceOf(user.address)
+    console.log("WETH balance after swap is:", wethBalanceAfter.value)
+    return transaction;
   }
 
   async function swapOnSushiswap(token1, token2, amount) {

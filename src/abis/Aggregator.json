@@ -28,7 +28,7 @@
       },
       {
         "internalType": "address",
-        "name": "_wbtc",
+        "name": "_matic",
         "type": "address"
       }
     ],
@@ -113,7 +113,7 @@
     "name": "dai",
     "outputs": [
       {
-        "internalType": "address",
+        "internalType": "contract IERC20",
         "name": "",
         "type": "address"
       }
@@ -122,11 +122,39 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "wbtc",
-    "outputs": [
+    "inputs": [
+      {
+        "internalType": "contract IUniswapLike",
+        "name": "amm",
+        "type": "address"
+      },
       {
         "internalType": "address",
+        "name": "token1",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "token2",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "executeSwap",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "matic",
+    "outputs": [
+      {
+        "internalType": "contract IERC20",
         "name": "",
         "type": "address"
       }
@@ -139,7 +167,7 @@
     "name": "weth",
     "outputs": [
       {
-        "internalType": "address",
+        "internalType": "contract IERC20",
         "name": "",
         "type": "address"
       }
