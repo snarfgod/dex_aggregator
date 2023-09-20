@@ -15,9 +15,11 @@ describe("Aggregator Contract", function () {
   const DAI = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
   const MATIC = "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0";
 
-  let transaction, amount, rate, AMM, accounts, aggregator, owner, user, vitalik, vitalikAddress;
+  let transaction, amount, rate, AMM, accounts, aggregator, owner, user, vitalik, vitalikAddress, amountOutMin;
 
   const uniswap = new ethers.Contract(UNISWAP, ["function swapExactTokensForTokens(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline) external returns (uint[] memory amounts)"]);
+  const sushiswap = new ethers.Contract(SUSHISWAP, ["function swapExactTokensForTokens(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline) external returns (uint[] memory amounts)"]);
+  const shibaswap = new ethers.Contract(SHIBASWAP, ["function swapExactTokensForTokens(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline) external returns (uint[] memory amounts)"]);
   const daiContract = new ethers.Contract(DAI, DAI_ABI, ethers.provider)
   const wethContract = new ethers.Contract(WETH, WETH_ABI, ethers.provider)
   const maticContract = new ethers.Contract(MATIC, MATIC_ABI, ethers.provider)
@@ -196,8 +198,11 @@ describe("Aggregator Contract", function () {
         //Check DAI balance is 0
         const daiBalanceBefore = await daiContract.connect(vitalik).balanceOf(vitalikAddress)
         console.log("DAI balance before swap is:", daiBalanceBefore)
+        //Approve aggregator to swap user's WETH with user as signer
+        transaction = await wethContract.connect(vitalik).approve(uniswap.address, ethers.utils.parseUnits('1', 18))
+        await transaction.wait()
         //Perform Swap
-        transaction = await swapOnUniswap(WETH, DAI, ethers.utils.parseUnits('1', 18))
+        transaction = await swapOnUniswap(WETH, DAI, ethers.utils.parseUnits('1', 18), amount)
         await transaction.wait()
         //Check DAI balance is greater than 0
         const daiBalanceAfter = await daiContract.connect(vitalik).balanceOf(vitalikAddress)
@@ -208,22 +213,198 @@ describe("Aggregator Contract", function () {
           method: "hardhat_stopImpersonatingAccount",
           params: ["0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"],
         });
-
+        expect(daiBalanceAfter).to.be.gt(daiBalanceBefore)
       })
       it("Successfully swaps 1 DAI for WETH on Uniswap", async () => {
+        //Impersonate Vitalik's account
+        await hre.network.provider.request({
+          method: "hardhat_impersonateAccount",
+          params: ["0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"],
+        });
+        vitalik = await ethers.provider.getSigner("0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045");
+        vitalikAddress = await vitalik.getAddress()
 
+        //Check WETH balance
+        const wethBalanceBefore = await wethContract.connect(vitalik).balanceOf(vitalikAddress)
+        console.log("WETH balance before swap is:", wethBalanceBefore)
+        //Check DAI balance is 0
+        const daiBalanceBefore = await daiContract.connect(vitalik).balanceOf(vitalikAddress)
+        console.log("DAI balance before swap is:", daiBalanceBefore)
+        amountOutMin = 100 //needs to be low because one DAI is a very small amount of WETH
+        //Approve uniswap to swap vitalik's DAI
+        transaction = await daiContract.connect(vitalik).approve(uniswap.address, ethers.utils.parseUnits('1', 18))
+        await transaction.wait()
+        //Perform Swap
+        transaction = await swapOnUniswap(DAI, WETH, ethers.utils.parseUnits('1', 18), amountOutMin)
+        await transaction.wait()
+        //Check DAI balance is greater than 0
+        const daiBalanceAfter = await daiContract.connect(vitalik).balanceOf(vitalikAddress)
+        console.log("DAI balance after swap is:", daiBalanceAfter)
+        //Check WETH balance is greater than before
+        const wethBalanceAfter = await wethContract.connect(vitalik).balanceOf(vitalikAddress)
+        console.log("WETH balance after swap is:", wethBalanceAfter)
+
+        //Stop impersonating
+        await hre.network.provider.request({
+          method: "hardhat_stopImpersonatingAccount",
+          params: ["0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"],
+        });
+        expect(wethBalanceAfter).to.be.gt(wethBalanceBefore)
+        expect(daiBalanceAfter).to.be.lt(daiBalanceBefore)
       })
       it("Successfully swaps 1 MATIC for DAI on Uniswap", async () => {
+        //Impersonate Vitalik's account
+        await hre.network.provider.request({
+          method: "hardhat_impersonateAccount",
+          params: ["0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"],
+        });
+        vitalik = await ethers.provider.getSigner("0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045");
+        vitalikAddress = await vitalik.getAddress()
 
+        //Vitalik has no MATIC, so we need to give him some by swapping some WETH for MATIC
+        transaction = await wethContract.connect(vitalik).approve(uniswap.address, ethers.utils.parseUnits('1', 18))
+        await transaction.wait()
+        transaction = await swapOnUniswap(WETH, MATIC, ethers.utils.parseUnits('1', 18), amount)
+        await transaction.wait()
+
+        //Check MATIC balance
+        const maticBalanceBefore = await maticContract.connect(vitalik).balanceOf(vitalikAddress)
+        console.log("MATIC balance before swap is:", maticBalanceBefore)
+        //Check DAI balance is 0
+        const daiBalanceBefore = await daiContract.connect(vitalik).balanceOf(vitalikAddress)
+        console.log("DAI balance before swap is:", daiBalanceBefore)
+        amountOutMin = ethers.utils.parseUnits('.3', 18) //MATIC is about 50 cents, so this is a reasonable amount
+        //Approve uniswap to swap vitalik's DAI
+        transaction = await maticContract.connect(vitalik).approve(uniswap.address, ethers.utils.parseUnits('1', 18))
+        await transaction.wait()
+        //Perform Swap
+        transaction = await swapOnUniswap(MATIC, DAI, ethers.utils.parseUnits('1', 18), amountOutMin)
+        await transaction.wait()
+        //Check MATIC balance after swap
+        const maticBalanceAfter = await maticContract.connect(vitalik).balanceOf(vitalikAddress)
+        console.log("MATIC balance after swap is:", maticBalanceAfter)
+        //Check DAI balance after swap
+        const daiBalanceAfter = await daiContract.connect(vitalik).balanceOf(vitalikAddress)
+        console.log("DAI balance after swap is:", daiBalanceAfter)
+    
+        //Stop impersonating
+        await hre.network.provider.request({
+          method: "hardhat_stopImpersonatingAccount",
+          params: ["0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"],
+        });
+        expect(daiBalanceAfter).to.be.gt(daiBalanceBefore)
+        expect(maticBalanceAfter).to.be.lt(maticBalanceBefore)
       })
       it("Successfully swaps 1 DAI for MATIC on Uniswap", async () => {
+        //Impersonate Vitalik's account
+        await hre.network.provider.request({
+          method: "hardhat_impersonateAccount",
+          params: ["0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"],
+        });
+        vitalik = await ethers.provider.getSigner("0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045");
+        vitalikAddress = await vitalik.getAddress()
 
+        //Check MATIC balance
+        const maticBalanceBefore = await maticContract.connect(vitalik).balanceOf(vitalikAddress)
+        console.log("MATIC balance before swap is:", maticBalanceBefore)
+        //Check DAI balance is 0
+        const daiBalanceBefore = await daiContract.connect(vitalik).balanceOf(vitalikAddress)
+        console.log("DAI balance before swap is:", daiBalanceBefore)
+        amountOutMin = ethers.utils.parseUnits('.3', 18) //MATIC is about 50 cents, so this is a reasonable amount
+        //Approve uniswap to swap vitalik's DAI
+        transaction = await daiContract.connect(vitalik).approve(uniswap.address, ethers.utils.parseUnits('1', 18))
+        await transaction.wait()
+        //Perform Swap
+        transaction = await swapOnUniswap(DAI, MATIC, ethers.utils.parseUnits('1', 18), amountOutMin)
+        await transaction.wait()
+        //Check MATIC balance after swap
+        const maticBalanceAfter = await maticContract.connect(vitalik).balanceOf(vitalikAddress)
+        console.log("MATIC balance after swap is:", maticBalanceAfter)
+        //Check DAI balance after swap
+        const daiBalanceAfter = await daiContract.connect(vitalik).balanceOf(vitalikAddress)
+        console.log("DAI balance after swap is:", daiBalanceAfter)
+    
+        //Stop impersonating
+        await hre.network.provider.request({
+          method: "hardhat_stopImpersonatingAccount",
+          params: ["0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"],
+        });
+        expect(daiBalanceAfter).to.be.lt(daiBalanceBefore)
+        expect(maticBalanceAfter).to.be.gt(maticBalanceBefore)
       })
       it("Successfully swaps 1 WETH for MATIC on Uniswap", async () => {
+        //Impersonate Vitalik's account
+        await hre.network.provider.request({
+          method: "hardhat_impersonateAccount",
+          params: ["0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"],
+        });
+        vitalik = await ethers.provider.getSigner("0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045");
+        vitalikAddress = await vitalik.getAddress()
 
+        //Check WETH balance
+        const wethBalanceBefore = await wethContract.connect(vitalik).balanceOf(vitalikAddress)
+        console.log("WETH balance before swap is:", wethBalanceBefore)
+        //Check MATIC balance
+        const maticBalanceBefore = await maticContract.connect(vitalik).balanceOf(vitalikAddress)
+        console.log("MATIC balance before swap is:", maticBalanceBefore)
+        amountOutMin = ethers.utils.parseUnits('.3', 18) //MATIC is about 50 cents, so this is a reasonable amount
+        //Approve uniswap to swap vitalik's WETH
+        transaction = await wethContract.connect(vitalik).approve(uniswap.address, ethers.utils.parseUnits('1', 18))
+        await transaction.wait()
+        //Perform Swap
+        transaction = await swapOnUniswap(WETH, MATIC, ethers.utils.parseUnits('1', 18), amountOutMin)
+        await transaction.wait()
+        //Check WETH balance after swap
+        const wethBalanceAfter = await wethContract.connect(vitalik).balanceOf(vitalikAddress)
+        console.log("WETH balance after swap is:", wethBalanceAfter)
+        //Check MATIC balance after swap
+        const maticBalanceAfter = await maticContract.connect(vitalik).balanceOf(vitalikAddress)
+        console.log("MATIC balance after swap is:", maticBalanceAfter)
+    
+        //Stop impersonating
+        await hre.network.provider.request({
+          method: "hardhat_stopImpersonatingAccount",
+          params: ["0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"],
+        });
+        expect(wethBalanceAfter).to.be.lt(wethBalanceBefore)
+        expect(maticBalanceAfter).to.be.gt(maticBalanceBefore)
       })
       it("Successfully swaps 1 MATIC for WETH on Uniswap", async () => {
+        //Impersonate Vitalik's account
+        await hre.network.provider.request({
+          method: "hardhat_impersonateAccount",
+          params: ["0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"],
+        });
+        vitalik = await ethers.provider.getSigner("0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045");
+        vitalikAddress = await vitalik.getAddress()
 
+        //Check WETH balance
+        const wethBalanceBefore = await wethContract.connect(vitalik).balanceOf(vitalikAddress)
+        console.log("WETH balance before swap is:", wethBalanceBefore)
+        //Check MATIC balance
+        const maticBalanceBefore = await maticContract.connect(vitalik).balanceOf(vitalikAddress)
+        console.log("MATIC balance before swap is:", maticBalanceBefore)
+        amountOutMin = 100 //matic is cheap af compared to weth
+        //Approve uniswap to swap vitalik's WETH
+        transaction = await maticContract.connect(vitalik).approve(uniswap.address, ethers.utils.parseUnits('1', 18))
+        await transaction.wait()
+        //Perform Swap
+        transaction = await swapOnUniswap(MATIC, WETH, ethers.utils.parseUnits('1', 18), amountOutMin)
+        await transaction.wait()
+        //Check WETH balance after swap
+        const wethBalanceAfter = await wethContract.connect(vitalik).balanceOf(vitalikAddress)
+        console.log("WETH balance after swap is:", wethBalanceAfter)
+        //Check MATIC balance after swap
+        const maticBalanceAfter = await maticContract.connect(vitalik).balanceOf(vitalikAddress)
+        console.log("MATIC balance after swap is:", maticBalanceAfter)
+    
+        //Stop impersonating
+        await hre.network.provider.request({
+          method: "hardhat_stopImpersonatingAccount",
+          params: ["0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"],
+        });
+        expect(wethBalanceAfter).to.be.gt(wethBalanceBefore)
+        expect(maticBalanceAfter).to.be.lt(maticBalanceBefore)
       })
     })
     describe("SushiSwap", async () => {
@@ -270,19 +451,14 @@ describe("Aggregator Contract", function () {
 
 // Functions to test direct swaps on each exchange
 
-async function swapOnUniswap(token1, token2, amount) {
+async function swapOnUniswap(token1, token2, amount, amountOutMin) {
     const path = [token1, token2];
     const amountIn = amount;
-    const amountOutMin = amount;
     const deadline = Math.floor(Date.now() / 1000) + 60 * 20; // 20 minutes from the current Unix time
-    //Approve aggregator to swap user's WETH with user as signer
-    transaction = await wethContract.connect(vitalik).approve(uniswap.address, ethers.utils.parseUnits('1', 18))
-    await transaction.wait()
+    
     transaction = await uniswap.connect(vitalik).swapExactTokensForTokens(amountIn, amountOutMin, path, vitalikAddress, deadline, { gasLimit: 400000 });
     await transaction.wait();
-    //check WETH balance for user
-    const wethBalanceAfter = await wethContract.connect(vitalik).balanceOf(vitalikAddress)
-    console.log("WETH balance after swap is:", wethBalanceAfter)
+    
     return transaction;
   }
 
