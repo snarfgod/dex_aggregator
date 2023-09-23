@@ -10,13 +10,20 @@ import Row from 'react-bootstrap/Row';
 import Spinner from 'react-bootstrap/Spinner';
 import { ethers } from 'ethers'
 
+
+
 import Alert from './Alert'
 
 import {
-  getBestRate
+  getBestRate,
+  executeSwap
 } from '../store/interactions'
 
+//import abis
+
+
 const { BigNumber } = require("@ethersproject/bignumber");
+
 
 const Swap = () => {
   //Initiate variables
@@ -24,15 +31,21 @@ const Swap = () => {
   const [outputToken, setOutputToken] = useState(null)
   const [inputAmount, setInputAmount] = useState(0)
   const [outputAmount, setOutputAmount] = useState(0)
+  const [showAlert, setShowAlert] = useState(false)
+
+
+  let transaction;
 
   const dispatch = useDispatch()
 
   // Import the aggregator contract and account from the Redux state
   const aggregator = useSelector((state) => state.aggregator.contract)
   const account = useSelector((state) => state.provider.account)
+  const provider = useSelector((state) => state.provider.provider)
   const chainId = useSelector((state) => state.provider.network)
   const rate = useSelector((state) => state.aggregator.rate)
   const AMM = useSelector((state) => state.aggregator.AMM)
+  
 
   // Set the input and output tokens to correct token addresses instead of names
   const tokenAddressMap = {
@@ -55,6 +68,11 @@ const Swap = () => {
     return num.toFixed(6);  // Up to 6 decimal places for numbers between 0 and 1
   };
 
+  // Function to handle the swap
+  const swapHandler = async (e) => {
+    
+  };
+
   // Get the best rate from the aggregator contract with selected tokens and amount if input and output tokens are selected
   useEffect(() => {
     if (inputToken && outputToken) {
@@ -72,7 +90,7 @@ const Swap = () => {
         const estimatedOutputInWei = amountInWei.mul(rateInWei).div(ethers.utils.parseUnits('1', 18));
         
         // Convert back to human-readable form
-        const scaledDownOutput = ethers.utils.formatUnits(estimatedOutputInWei, 18); // This will divide by 10^18
+        const scaledDownOutput = ethers.utils.formatUnits(estimatedOutputInWei, 18);
 
         setOutputAmount(scaledDownOutput);
       }
@@ -85,7 +103,7 @@ const Swap = () => {
     <div>
     <Card style={{ maxWidth: '450px' }} className='mx-auto px-4'>
       {account ? (
-        <Form style={{ maxWidth: '450px', margin: '50px auto' }}>
+        <Form onSubmit={swapHandler} style={{ maxWidth: '450px', margin: '50px auto' }}>
 
           <Row className='my-3'>
             <div className='d-flex justify-content-between'>
