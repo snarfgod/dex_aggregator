@@ -43,6 +43,9 @@ const Swap = () => {
   const rate = useSelector((state) => state.aggregator.rate)
   const AMM = useSelector((state) => state.aggregator.AMM)
   const WETH_ABI = useSelector((state) => state.aggregator.WETH_ABI)
+  const DAI_ABI = useSelector((state) => state.aggregator.DAI_ABI)
+  const MATIC_ABI = useSelector((state) => state.aggregator.MATIC_ABI)
+  const AMM_ABI = useSelector((state) => state.aggregator.AMM_ABI)
   
 
   // Set the input and output tokens to correct token addresses instead of names
@@ -75,11 +78,12 @@ const Swap = () => {
     console.log(AMM);
     const WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
     const wethContract = new ethers.Contract(WETH, WETH_ABI, provider)
+    const AMMContract = new ethers.Contract(AMM, AMM_ABI, provider)
     // Get signer
     const signer = provider.getSigner();
-    transaction = await wethContract.connect(signer).approve(AMM, ethers.utils.parseUnits(inputAmount.toString(), 18));
+    transaction = await wethContract.connect(signer).approve(aggregator.address, ethers.utils.parseUnits(inputAmount.toString(), 18));
     await transaction.wait()
-    transaction = await aggregator.connect(signer).executeSwap(AMM, inputTokenAddress, outputTokenAddress, ethers.utils.parseUnits(inputAmount.toString(), 18));
+    transaction = await aggregator.connect(signer).executeSwap(AMMContract.address, inputTokenAddress, outputTokenAddress, ethers.utils.parseUnits(inputAmount.toString(), 18));
     await transaction.wait()
     console.log(await wethContract.connect(signer).balanceOf(signer.address))
   };
