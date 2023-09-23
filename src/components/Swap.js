@@ -12,18 +12,16 @@ import { ethers } from 'ethers'
 
 
 
+
+
 import Alert from './Alert'
 
 import {
-  getBestRate,
-  executeSwap
+  getBestRate
 } from '../store/interactions'
 
 //import abis
-
-
 const { BigNumber } = require("@ethersproject/bignumber");
-
 
 const Swap = () => {
   //Initiate variables
@@ -33,7 +31,6 @@ const Swap = () => {
   const [outputAmount, setOutputAmount] = useState(0)
   const [showAlert, setShowAlert] = useState(false)
 
-
   let transaction;
 
   const dispatch = useDispatch()
@@ -41,10 +38,11 @@ const Swap = () => {
   // Import the aggregator contract and account from the Redux state
   const aggregator = useSelector((state) => state.aggregator.contract)
   const account = useSelector((state) => state.provider.account)
-  const provider = useSelector((state) => state.provider.provider)
+  const provider = useSelector((state) => state.provider.connection)
   const chainId = useSelector((state) => state.provider.network)
   const rate = useSelector((state) => state.aggregator.rate)
   const AMM = useSelector((state) => state.aggregator.AMM)
+  const WETH_ABI = useSelector((state) => state.aggregator.WETH_ABI)
   
 
   // Set the input and output tokens to correct token addresses instead of names
@@ -70,7 +68,20 @@ const Swap = () => {
 
   // Function to handle the swap
   const swapHandler = async (e) => {
-    
+    e.preventDefault();
+    console.log(provider, account)
+    const inputTokenAddress = tokenAddressMap[inputToken]; // Get address from map
+    const outputTokenAddress = tokenAddressMap[outputToken]; // Get address from map
+    console.log(AMM);
+    const WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+    const wethContract = new ethers.Contract(WETH, WETH_ABI, provider)
+    // Get signer
+    const signer = provider.getSigner();
+    transaction = await wethContract.connect(signer).approve(AMM, ethers.utils.parseUnits(inputAmount.toString(), 18));
+    await transaction.wait()
+    transaction = await aggregator.connect(signer).executeSwap(AMM, inputTokenAddress, outputTokenAddress, ethers.utils.parseUnits(inputAmount.toString(), 18));
+    await transaction.wait()
+    console.log(await wethContract.connect(signer).balanceOf(signer.address))
   };
 
   // Get the best rate from the aggregator contract with selected tokens and amount if input and output tokens are selected

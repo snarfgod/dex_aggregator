@@ -2,9 +2,10 @@
 pragma solidity ^0.8.0;
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 
 // Interface for Uniswap-like AMMs
-interface IUniswapLike {
+interface IUniswapLike is IUniswapV2Router02 {
     function getAmountsOut(uint256 amountIn, address[] calldata path) external view returns (uint[] memory amounts);
     function swapExactTokensForTokens(uint256 amountIn, uint256 amountOutMin, address[] calldata path, address to, uint256 deadline) external returns(uint[] memory amounts);
 }
@@ -12,6 +13,7 @@ interface IUniswapLike {
 // Interface for ERC20 tokens
 interface IERC20 {
     function approve(address spender, uint256 amount) external returns (bool);
+    function transferFrom(address sender, address recipient, uint256 amount) external returns(bool);
 }
 
 contract Aggregator {
@@ -66,6 +68,7 @@ contract Aggregator {
         require(token1 != address(0) && token2 != address(0), "Token addresses cannot be zero");
         require(amount > 0, "Amount must be greater than zero");
         require(amm == amm1 || amm == amm2 || amm == amm3, "Invalid AMM");
+        require(IERC20(token1).transferFrom(msg.sender, address(this), amount), "Transfer failed");
         IERC20(token1).approve(address(amm), amount);
         address[] memory path = new address[](2);
         path[0] = token1;

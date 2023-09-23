@@ -5,7 +5,10 @@ export const aggregator = createSlice({
     initialState: {
         contract: null,
         rate: 0,
-        AMM: null
+        AMM: null,
+        WETH_ABI: require("../../abis/WETH.json"),
+        DAI_ABI: require("../../abis/DAI.json"),
+        MATIC_ABI: require("../../abis/MATIC.json"),
     },
     reducers: {
         setAggregatorContract: (state, action) => {
