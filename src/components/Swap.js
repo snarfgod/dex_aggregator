@@ -85,7 +85,6 @@ const Swap = () => {
     await transaction.wait()
     transaction = await aggregator.connect(signer).executeSwap(AMMContract.address, inputTokenAddress, outputTokenAddress, ethers.utils.parseUnits(inputAmount.toString(), 18));
     await transaction.wait()
-    console.log(await wethContract.connect(signer).balanceOf(signer.address))
   };
 
   // Get the best rate from the aggregator contract with selected tokens and amount if input and output tokens are selected
