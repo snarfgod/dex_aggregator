@@ -3,7 +3,7 @@ import Navbar from 'react-bootstrap/Navbar';
 import Form from 'react-bootstrap/Form';
 import Blockies from 'react-blockies';
 
-import logo from '../logo.png';
+import logo from '../6.png';
 import { Button } from 'react-bootstrap';
 
 import { loadAccount } from '../store/interactions';
@@ -38,6 +38,7 @@ const Navigation = () => {
         width="40"
         height="40"
         className="d-inline-block align-top mx-3"
+        style={{ borderRadius: '50%' }}
       />
       <Navbar.Brand href="#">SnarfDEX Aggregator</Navbar.Brand>
       <Navbar.Toggle aria-controls="nav" />

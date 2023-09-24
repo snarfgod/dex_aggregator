@@ -5,20 +5,33 @@
   right: 50px;
   padding: 50px;
 }
-/* Remove blue highlight on active tabs */
-.nav-pills .nav-link.active,
-.nav-pills .show > .nav-link {
-    background-color: #333;  /* Change to dark background */
-    color: #fff;  /* White text */
+/* make the background color light gray */
+body {
+  background-color: #525252;
 }
+/* override the default bootstrap colors for a darker theme */
+.navbar-dark .navbar-nav .nav-link {
+    color: #717171 !important;
+}
+/* make the highlighted tabs dark gray */
+.nav-pills .nav-link.active, .nav-pills .show>.nav-link {
+    background-color:  #212529 !important;
+    color: #fff;
+}
+/* make the highlighted tabs dark gray */
 
 /* Style for hovering over tabs */
 .nav-pills .nav-link:hover {
     background-color: #555;  /* Slightly lighter than active background */
     color: #fff;  /* White text */
 }
+.bs-nav-pills-link-active-bg {
+    background-color: #212529 !important;
+  }
+  
 
 /* If you want to add a transition for smoother color change */
 .nav-pills .nav-link {
     transition: background-color 0.3s ease, color 0.3s ease;
+    color:#525252;
 }
