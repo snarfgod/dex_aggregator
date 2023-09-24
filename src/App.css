@@ -1,18 +1,24 @@
+/* General styles */
 .App {
   text-align: center;
+  color: #1e2426;
+  background-color: bisque;
 }
 
+/* Logo styles */
 .App-logo {
   height: 40vmin;
   pointer-events: none;
 }
 
+/* Animation for logo */
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
   }
 }
 
+/* Header styles */
 .App-header {
   background-color: #282c34;
   min-height: 100vh;
@@ -24,10 +30,12 @@
   color: white;
 }
 
+/* Link styles */
 .App-link {
-  color: #61dafb;
+  color: #1e2426;
 }
 
+/* Animation keyframes */
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
@@ -36,3 +44,42 @@
     transform: rotate(360deg);
   }
 }
+
+/* Custom styling for Navbar */
+.custom-navbar {
+  background-color: #343a40; /* Dark background */
+  border-bottom: 2px solid #ccc; /* Bottom border */
+  box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.2); /* Shadow for depth */
+}
+
+/* Custom logo styling */
+.navbar-logo {
+  height: 50px; /* Adjust based on your needs */
+  margin-right: 10px;
+}
+
+/* Custom button styling */
+.custom-button {
+  background-color: #007bff; /* Blue background */
+  border: none; /* Remove default border */
+  color: #ffffff; /* White text */
+  padding: 10px 20px; /* Padding */
+  border-radius: 5px; /* Rounded corners */
+}
+
+/* Blockie icon styling */
+.blockie-icon {
+  margin-right: 10px;
+}
+
+/* Custom styling for Network Selector */
+.custom-select {
+  max-width: 200px;
+  margin-right: 20px;
+}
+
+/* Add transition for smooth effect */
+.custom-button:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+}
+

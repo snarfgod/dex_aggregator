@@ -9,7 +9,8 @@ export const aggregator = createSlice({
         WETH_ABI: require("../../abis/WETH.json"),
         DAI_ABI: require("../../abis/DAI.json"),
         MATIC_ABI: require("../../abis/MATIC.json"),
-        AMM_ABI: require("../../abis/IUniswapLike.json")
+        AMM_ABI: require("../../abis/IUniswapLike.json"),
+        balances: [0, 0]
     },
     reducers: {
         setAggregatorContract: (state, action) => {
@@ -20,10 +21,13 @@ export const aggregator = createSlice({
         },
         setAMM: (state, action) => {
             state.AMM = action.payload
+        },
+        balancesLoaded: (state, action) => {
+            state.balances = action.payload
         }
     }
 })
 
-export const { setAggregatorContract, setRate, setAMM } = aggregator.actions;
+export const { setAggregatorContract, setRate, setAMM, balancesLoaded} = aggregator.actions;
 
 export default aggregator.reducer;

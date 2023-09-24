@@ -5,3 +5,20 @@
   right: 50px;
   padding: 50px;
 }
+/* Remove blue highlight on active tabs */
+.nav-pills .nav-link.active,
+.nav-pills .show > .nav-link {
+    background-color: #333;  /* Change to dark background */
+    color: #fff;  /* White text */
+}
+
+/* Style for hovering over tabs */
+.nav-pills .nav-link:hover {
+    background-color: #555;  /* Slightly lighter than active background */
+    color: #fff;  /* White text */
+}
+
+/* If you want to add a transition for smoother color change */
+.nav-pills .nav-link {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}

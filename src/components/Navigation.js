@@ -48,7 +48,7 @@ const Navigation = () => {
             aria-label="Network Selector"
             value={config[chainId] ? `0x${chainId.toString(16)}` : '0'}
             onChange={networkHandler}
-            style={{ maxWidth: '200px', marginRight: '20px' }}
+            style={{ maxWidth: '220px', marginRight: '20px', border: '1px solid #444', borderRadius: '5px' }}
           >
             <option value='0'disabled>Select Network</option>
             <option value='0x7A69'>localhost</option>

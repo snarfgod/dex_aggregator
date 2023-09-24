@@ -48,15 +48,12 @@ function App() {
 
   return(
     <Container>
-      <HashRouter>
+      <HashRouter style={{ backgroundColor: "#F0F0F0", color: "#FFFFFF" }}>
         <Navigation/>
         <hr />
         <Tabs/>
         <Routes>
           <Route exact path="/" element={<Swap />} />
-          <Route exact path="/deposit" element={<Deposit />} />
-          <Route exact path="/withdraw" element={<Withdraw />} />
-          <Route exact path="/charts" element={<Charts />} />
         </Routes>
       </HashRouter>
     </Container>

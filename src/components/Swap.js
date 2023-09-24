@@ -17,7 +17,9 @@ import { ethers } from 'ethers'
 import Alert from './Alert'
 
 import {
-  getBestRate
+  getBestRate,
+  getBalances,
+  loadBalances
 } from '../store/interactions'
 
 //import abis
@@ -31,7 +33,7 @@ const Swap = () => {
   const [outputAmount, setOutputAmount] = useState(0)
   const [showAlert, setShowAlert] = useState(false)
 
-  let transaction;
+  let transaction, balance1, balance2;
 
   const dispatch = useDispatch()
 
@@ -46,6 +48,7 @@ const Swap = () => {
   const DAI_ABI = useSelector((state) => state.aggregator.DAI_ABI)
   const MATIC_ABI = useSelector((state) => state.aggregator.MATIC_ABI)
   const AMM_ABI = useSelector((state) => state.aggregator.AMM_ABI)
+  const balances = useSelector((state) => state.aggregator.balances)
   
 
   // Set the input and output tokens to correct token addresses instead of names
@@ -107,7 +110,7 @@ const Swap = () => {
   
       // Pass the dispatch function to getBestRate
       getBestRate(dispatch, aggregator, inputTokenAddress, outputTokenAddress, ethers.utils.parseUnits('1', 18));
-  
+      loadBalances(dispatch, inputTokenAddress, outputTokenAddress, account, provider);
       if(inputAmount > 0) {
         const amountInWei = ethers.utils.parseUnits(inputAmount.toString(), 18); // Convert to wei
         const rateInWei = ethers.utils.parseUnits(rate.toString(), 18); // Convert rate to wei
@@ -153,7 +156,10 @@ const Swap = () => {
                 <Dropdown.Item onClick={(e) => setInputToken(e.target.innerHTML)} >DAI</Dropdown.Item>
                 <Dropdown.Item onClick={(e) => setInputToken(e.target.innerHTML)} >MATIC</Dropdown.Item>
               </DropdownButton>
-            </InputGroup>
+            </InputGroup>   
+            <Form.Text muted>
+              Balance: {balances[0]} {inputToken}
+            </Form.Text>
           </Row>
 
           <Row className='my-4'>
@@ -180,10 +186,13 @@ const Swap = () => {
                 <Dropdown.Item onClick={(e) => setOutputToken(e.target.innerHTML)}>MATIC</Dropdown.Item>
               </DropdownButton>
             </InputGroup>
+            <Form.Text muted>
+              Balance: {balances[1]} {outputToken}
+            </Form.Text>
           </Row>
 
           <Row className='my-3'>
-              <Button type='submit'>Swap</Button>
+              <Button type='submit' variant = 'dark'>Swap</Button>
             {inputToken && outputToken ? (
               <Form.Text muted>
               Estimated price: {formatOutput(rate)} {outputToken} per {inputToken} on {AMMAddressMap[AMM]}
