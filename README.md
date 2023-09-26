@@ -2,13 +2,13 @@
 
 ## Introduction
 
-This project is a simple DEX aggregator that quotes the exchange with the best price and executes a swap on that exchange.  
+This project is a simple DEX aggregator that quotes the exchange with the best price and executes a swap on that exchange.  It can swap WETH, DAI, and MATIC across Uniswap, Sushiswap, or Shibaswap. It is built on top of the [Hardhat](https://hardhat.org/) framework.
 
 ## Usage
 
 ```npm install```
 
-```npx hardhat node```
+```npx hardhat node --network hardhat```
 
 ```npx hardhat run scripts/deploy.js --network localhost```
 
