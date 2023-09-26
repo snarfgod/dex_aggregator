@@ -1,23 +1,14 @@
-import { useSelector, useDispatch } from 'react-redux'
-import Table from 'react-bootstrap/Table';
-import Chart from 'react-apexcharts';
-import { ethers } from 'ethers'
-
-import { options, series } from './Charts.config';
-import { chartSelector } from '../store/selectors';
-import { useEffect } from 'react'
-
-import Loading from './Loading';
-
-
+import React, { useEffect, useState } from 'react';
+import { Line } from 'react-chartjs-2';
 
 const Charts = () => {
-  
+
   return (
     <div>
-      Charts
+      <h2>Cryptocurrency Price History</h2>
+      
     </div>
   );
-}
+};
 
 export default Charts;

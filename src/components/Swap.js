@@ -10,10 +10,6 @@ import Row from 'react-bootstrap/Row';
 import Spinner from 'react-bootstrap/Spinner';
 import { ethers } from 'ethers'
 
-
-
-
-
 import Alert from './Alert'
 
 import {
@@ -32,6 +28,9 @@ const Swap = () => {
   const [inputAmount, setInputAmount] = useState(0)
   const [outputAmount, setOutputAmount] = useState(0)
   const [showAlert, setShowAlert] = useState(false)
+  const [isSwapping, setIsSwapping] = useState(false)
+  const [swapSuccess, setSwapSuccess] = useState(false)
+  const [transactionHash, setTransactionHash] = useState(null)
 
   let transaction, balance1, balance2;
 
@@ -74,37 +73,47 @@ const Swap = () => {
 
   // Function to handle the swap
   const swapHandler = async (e) => {
-    e.preventDefault();
-    console.log(provider, account)
-    const inputTokenAddress = tokenAddressMap[inputToken]; // Get address from map
-    const outputTokenAddress = tokenAddressMap[outputToken]; // Get address from map
-    console.log(AMM);
-    const WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-    const DAI = "0x6B175474E89094C44Da98b954EedeAC495271d0F"
-    const MATIC = "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0"
-    const wethContract = new ethers.Contract(WETH, WETH_ABI, provider)
-    const daiContract = new ethers.Contract(DAI, DAI_ABI, provider)
-    const maticContract = new ethers.Contract(MATIC, MATIC_ABI, provider)
-    const AMMContract = new ethers.Contract(AMM, AMM_ABI, provider)
-    // Get signer
-    const signer = provider.getSigner();
-    if(inputToken === "WETH") {
-      transaction = await wethContract.connect(signer).approve(aggregator.address, ethers.utils.parseUnits(inputAmount.toString(), 18));
+    try{
+      e.preventDefault();
+      setIsSwapping(true);
+      setShowAlert(false);
+      const inputTokenAddress = tokenAddressMap[inputToken]; // Get address from map
+      const outputTokenAddress = tokenAddressMap[outputToken]; // Get address from map
+      const WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+      const DAI = "0x6B175474E89094C44Da98b954EedeAC495271d0F"
+      const MATIC = "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0"
+      const wethContract = new ethers.Contract(WETH, WETH_ABI, provider)
+      const daiContract = new ethers.Contract(DAI, DAI_ABI, provider)
+      const maticContract = new ethers.Contract(MATIC, MATIC_ABI, provider)
+      const AMMContract = new ethers.Contract(AMM, AMM_ABI, provider)
+      // Get signer
+      const signer = provider.getSigner();
+      if(inputToken === "WETH") {
+        transaction = await wethContract.connect(signer).approve(aggregator.address, ethers.utils.parseUnits(inputAmount.toString(), 18));
+        await transaction.wait()
+      } else if (inputToken === "DAI") {
+        transaction = await daiContract.connect(signer).approve(aggregator.address, ethers.utils.parseUnits(inputAmount.toString(), 18));
+        await transaction.wait()
+      } else if (inputToken === "MATIC") {
+        transaction = await maticContract.connect(signer).approve(aggregator.address, ethers.utils.parseUnits(inputAmount.toString(), 18));
+        await transaction.wait()
+      }    
+      transaction = await aggregator.connect(signer).executeSwap(AMMContract.address, inputTokenAddress, outputTokenAddress, ethers.utils.parseUnits(inputAmount.toString(), 18));
       await transaction.wait()
-    } else if (inputToken === "DAI") {
-      transaction = await daiContract.connect(signer).approve(aggregator.address, ethers.utils.parseUnits(inputAmount.toString(), 18));
-      await transaction.wait()
-    } else if (inputToken === "MATIC") {
-      transaction = await maticContract.connect(signer).approve(aggregator.address, ethers.utils.parseUnits(inputAmount.toString(), 18));
-      await transaction.wait()
-    }    
-    transaction = await aggregator.connect(signer).executeSwap(AMMContract.address, inputTokenAddress, outputTokenAddress, ethers.utils.parseUnits(inputAmount.toString(), 18));
-    await transaction.wait()
+      setIsSwapping(false);
+      setSwapSuccess(true);
+      setShowAlert(true);
+    } catch (error) {
+      console.log(error);
+      setIsSwapping(false);
+      setSwapSuccess(false);
+      setShowAlert(true);
+    }
   };
 
   // Get the best rate from the aggregator contract with selected tokens and amount if input and output tokens are selected
   useEffect(() => {
-    if (inputToken && outputToken) {
+    if (inputToken && outputToken && outputToken != inputToken) {
       const inputTokenAddress = tokenAddressMap[inputToken]; // Get address from map
       const outputTokenAddress = tokenAddressMap[outputToken]; // Get address from map
   
@@ -164,7 +173,7 @@ const Swap = () => {
 
           <Row className='my-4'>
             <div className='d-flex justify-content-between'>
-              <Form.Label><strong>You receive:</strong></Form.Label>
+              <Form.Label><strong>You receive (estimate):</strong></Form.Label>
               <Form.Text muted>
                 
               </Form.Text>
@@ -192,7 +201,13 @@ const Swap = () => {
           </Row>
 
           <Row className='my-3'>
-              <Button type='submit' variant = 'dark'>Swap</Button>
+            {isSwapping ? (
+                <Spinner animation="border" style={{ display: 'block', margin: '0 auto' }}/>
+            ) : (
+              <Button variant='dark' type='submit'>
+                Swap
+              </Button>
+            )}
             {inputToken && outputToken ? (
               <Form.Text muted>
               Estimated price: {formatOutput(rate)} {outputToken} per {inputToken} on {AMMAddressMap[AMM]}
@@ -216,6 +231,30 @@ const Swap = () => {
         </p>
       )}
     </Card>
+    {isSwapping ? (
+        <Alert
+          message={'Swap Pending...'}
+          transactionHash={null}
+          variant={'info'}
+          setShowAlert={setShowAlert}
+        />
+      ) : swapSuccess && showAlert ? (
+        <Alert
+          message={'Swap Successful'}
+          transactionHash={transactionHash}
+          variant={'success'}
+          setShowAlert={setShowAlert}
+        />
+      ) : !swapSuccess && showAlert ? (
+        <Alert
+          message={'Swap Failed'}
+          transactionHash={null}
+          variant={'danger'}
+          setShowAlert={setShowAlert}
+        />
+      ) : (
+        <></>
+      )}
   </div>
   );
 };

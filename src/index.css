@@ -7,7 +7,7 @@
 }
 /* make the background color light gray */
 body {
-  background-color: #525252;
+  background-color: #e9ecef !important;
 }
 /* override the default bootstrap colors for a darker theme */
 .navbar-dark .navbar-nav .nav-link {
