@@ -14,7 +14,6 @@ import Alert from './Alert'
 
 import {
   getBestRate,
-  getBalances,
   loadBalances
 } from '../store/interactions'
 
@@ -117,7 +116,6 @@ const Swap = () => {
       const inputTokenAddress = tokenAddressMap[inputToken]; // Get address from map
       const outputTokenAddress = tokenAddressMap[outputToken]; // Get address from map
   
-      // Pass the dispatch function to getBestRate
       getBestRate(dispatch, aggregator, inputTokenAddress, outputTokenAddress, ethers.utils.parseUnits('1', 18));
       loadBalances(dispatch, inputTokenAddress, outputTokenAddress, account, provider);
       if(inputAmount > 0) {
@@ -126,8 +124,8 @@ const Swap = () => {
 
         // Use BigNumber for accurate calculations
         const estimatedOutputInWei = amountInWei.mul(rateInWei).div(ethers.utils.parseUnits('1', 18));
-        
-        // Convert back to human-readable form
+        ''
+        // Convert back to human-readable form[]
         const scaledDownOutput = ethers.utils.formatUnits(estimatedOutputInWei, 18);
 
         setOutputAmount(scaledDownOutput);

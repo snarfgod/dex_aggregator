@@ -54,7 +54,7 @@ function App() {
         <Tabs/>
         <Routes>
           <Route exact path="/" element={<Swap />} />
-          <Route exact path="/charts" element={<Charts />} />
+          <Route exact path="/deposit" element={<Deposit />} />
         </Routes>
       </HashRouter>
     </Container>
