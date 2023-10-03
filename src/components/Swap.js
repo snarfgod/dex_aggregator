@@ -124,7 +124,7 @@ const Swap = () => {
 
         // Use BigNumber for accurate calculations
         const estimatedOutputInWei = amountInWei.mul(rateInWei).div(ethers.utils.parseUnits('1', 18));
-        ''
+        
         // Convert back to human-readable form[]
         const scaledDownOutput = ethers.utils.formatUnits(estimatedOutputInWei, 18);
 
